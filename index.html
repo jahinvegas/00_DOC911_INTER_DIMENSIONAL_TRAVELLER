@@ -1,4 +1,50 @@
 <!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════════════╗
+  ║               DOC911 // INTER-DIMENSIONAL COMMAND                   ║
+  ║                    System v5.0  —  Full Build                       ║
+  ╠══════════════════════════════════════════════════════════════════════╣
+  ║  OVERVIEW                                                           ║
+  ║  Single-file HTML/CSS/JS website for DOC911, an inter-dimensional   ║
+  ║  traveller and music artist. No framework, no build step.           ║
+  ║  All audio is generated procedurally via the Web Audio API.         ║
+  ║                                                                     ║
+  ║  SECTIONS (in DOM order)                                            ║
+  ║  1. Boot Sequence     — CRT typewriter intro, skippable             ║
+  ║  2. Hero              — Animated brand title, WebGL particle vortex ║
+  ║  3. About / Chronicle — Identity card + location node cards         ║
+  ║  4. Console           — Drone engine controls, XY pad, telemetry    ║
+  ║  5. Step Sequencer    — 4×8 pattern grid with swing + voice select  ║
+  ║  6. Music Studio      — Procedural tracks, circular FFT visualizer  ║
+  ║  7. Gallery           — 8-plate photo grid with lightbox + checkout ║
+  ║  8. Dimensional Map   — Pannable canvas star map, 8 nodes/12 edges  ║
+  ║  9. Footer                                                          ║
+  ║                                                                     ║
+  ║  AUDIO GRAPH                                                        ║
+  ║  OscStack → WaveShaper → LowpassFilter → DroneGain                  ║
+  ║       └─→ SendGain → Convolver (reverb) ─→ ReverbWet ──┐            ║
+  ║  DroneGain → StereoPanner → DroneAnalyser → ReverbDry ──┤           ║
+  ║  ShimmerNoise → HighpassFilter → NoiseGain → ReverbDry ──┤          ║
+  ║  Sequencer notes → BiquadFilter → EnvGain → Convolver/Dry ──┤       ║
+  ║  MusicPlayer → StereoPanner → Convolver/Dry ──┤                     ║
+  ║  ReverbDry/Wet → MasterAnalyser → MasterGain → Destination         ║
+  ║                                                                     ║
+  ║  GLOBAL STATE (window.*) — bridge between isolated IIFEs            ║
+  ║  window._setParticleRMS(v)   Feed RMS to WebGL vortex               ║
+  ║  window._setTrailRMS(v)      Feed RMS to cursor trail               ║
+  ║                                                                     ║
+  ║  EXTERNAL DEPENDENCIES                                              ║
+  ║  • Tailwind CSS (CDN) — utility classes for layout only             ║
+  ║  • GSAP 3.12 (CDN)    — hero reveal, lightbox fades, engage anim    ║
+  ║  • Google Fonts       — Syne, Syne Mono, Unbounded                  ║
+  ║                                                                     ║
+  ║  CUSTOMISATION QUICK-REF                                            ║
+  ║  Colors      → :root CSS variables at top of <style>               ║
+  ║  Checkout URL → const CHECKOUT_REDIRECT_URL in openCheckout()       ║
+  ║  Gallery imgs → click "Upload Images" in the hero CTA               ║
+  ║  BPM/Swing   → seq-bpm-val / seq-swing controls in Sequencer        ║
+  ╚══════════════════════════════════════════════════════════════════════╝
+-->
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
@@ -6,7 +52,7 @@
   <title>DOC911 // Inter-Dimensional Command</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Syne+Mono&family=Unbounded:wght@300;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&amp;family=Syne+Mono&amp;family=Unbounded:wght@300;900&amp;display=swap" rel="stylesheet">
   <style>
     :root{--bg:#02020c;--cyan:#00f5e4;--purple:#c45bff;--gold:#f0b429;--surface:rgba(255,255,255,0.028);--border:rgba(255,255,255,0.06);--text:#e2eef8;--muted:#5a6a7e;}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -632,9 +678,64 @@
 <div id="checkoutRoot" aria-hidden="true"></div>
 
 <script>
+/*
+ * ====================================================================
+ * DOC911 — JAVASCRIPT MASTER FILE
+ * ====================================================================
+ *
+ * ARCHITECTURE
+ * ------------
+ * All code lives in one script block, structured as self-contained
+ * IIFEs (Immediately Invoked Function Expressions). Shared audio nodes
+ * (actx, masterGain, conv, revDry, masterAn, droneAn, dronePan) are
+ * declared at module scope so every IIFE can access them.
+ *
+ * EXECUTION ORDER
+ * ---------------
+ *  1. bootSeq()         Boot screen typewriter animation
+ *  2. Cursor setup      Custom cursor dot + lagged ring
+ *  3. Stars             Generate 200 random star divs
+ *  4. Scroll / Parallax Stars + hero parallax, section fade-ups
+ *  5. initWebGL()       WebGL particle vortex (Enhancement 1b)
+ *  6. Audio engine      actx, nodes, AUD object (Enhancement core)
+ *  7. UI bindings       Lever, toggles, selects → AUD methods
+ *  8. initXYPad()       2D synth pad → filter cutoff + Q
+ *  9. meterLoop()       rAF loop: RMS meters + feeds _setParticleRMS
+ *                       and _setTrailRMS every frame
+ * 10. initCircVis()     Circular FFT oscilloscope (Enhancement 3)
+ * 11. initMusic()       Procedural music player + waveform preview
+ * 12. initGallery()     Photo grid, lightbox, upload handler
+ * 13. initDimMap()      Pannable canvas star map (Enhancement 6)
+ * 14. openCheckout()    Checkout modal (prototype, Stripe-ready)
+ * 15. initSequencer()   8-step pattern sequencer with scheduler
+ * 16. initCursorTrail() Audio-reactive cursor comet trail
+ *
+ * AUDIO CONTEXT NOTE
+ * ------------------
+ * Web browsers require a user gesture before AudioContext can run.
+ * actx is created immediately but suspended. A one-shot 'click'
+ * listener on document calls actx.resume() on first interaction.
+ * All AUD methods also call actx.resume() defensively.
+ *
+ * ====================================================================
+ */
 /* ============================================================
-   ENHANCEMENT 1 — BOOT SEQUENCE
-============================================================ */
+   BOOT SEQUENCE  (Enhancement 1)
+   ============================================================
+   Renders a CRT-style terminal before the hero is visible.
+   Lines are typed character-by-character with randomised
+   per-character delays to simulate a real terminal.
+
+   Flow:
+     typeChar() → builds each line into a <div> inserted before
+     the blinking caret element → when all lines are done,
+     endBoot() fades the overlay and calls revealHero().
+
+   revealHero() drives the GSAP timeline that fades in
+   #main-brand, #sub-brand, #hero-cta, and all .fade-up elements.
+
+   The "Skip →" button short-circuits directly to endBoot().
+   ============================================================ */
 (function bootSeq(){
   const bootEl=document.getElementById('boot');
   const term=document.getElementById('boot-term');
@@ -684,7 +785,40 @@
 
 /* ============================================================
    CURSOR + AUDIO-REACTIVE TRAIL
-============================================================ */
+   ============================================================
+   Two-layer custom cursor:
+   • #cursor-dot  — snaps exactly to mouse position each frame
+   • #cursor-ring — lags behind via lerp (factor 0.12) for a
+     smooth trailing ring effect. CSS :has() selector expands
+     the ring on hover over buttons/links.
+
+   TRAIL CANVAS  (#cursor-trail-canvas, z-index 9997)
+   • Fixed canvas, resized on window resize.
+   • Each frame: one new particle is born at cursor position.
+   • Particle properties baked at birth: x/y, velocity (vx/vy),
+     size (scales with RMS), life (scales with RMS), hue
+     (180=cyan at silence → 280=purple at loud), rms snapshot.
+   • Per frame: particles age, drift via velocity × 0.92 drag,
+     radius and alpha decay quadratically (t²).
+   • Radial gradient glow + solid core dot for fresh points.
+
+   ENGAGE BURST
+   • engageBtn click sets engageBurst=true for 60 frames.
+   • During burst: particles scatter ±80px, turn gold (hsl 45°),
+     get large sizes and randomised outward velocity.
+
+   HERO TITLE PULSE
+   • RMS drives a text-shadow on #main-brand each frame,
+     creating a breathing cyan glow locked to audio energy.
+
+   NAV DOT BREATHE
+   • When audio is active, the nav pulse dot scales and brightens
+     proportionally to RMS on every frame.
+
+   DATA FLOW
+   • window._setTrailRMS(v) is called by meterLoop() every rAF
+     frame with the master channel RMS value (0–1).
+   ============================================================ */
 const cursorDot=document.getElementById('cursor-dot');
 const cursorRing=document.getElementById('cursor-ring');
 let mx=0,my=0,rx=0,ry=0;
@@ -798,12 +932,38 @@ document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursorDot.st
 
 /* ============================================================
    STARS
-============================================================ */
+   ============================================================
+   Generates 200 absolutely-positioned <div> elements inside
+   #stars. Each star gets:
+   • Random position (left/top as %)
+   • Random size: 85% are tiny (0.5–2px), 15% are larger (1–4px)
+   • CSS custom properties --dur, --delay, --op that drive the
+     `twinkle` keyframe animation defined in the stylesheet.
+
+   The #stars element is translated on scroll by the parallax
+   handler at 0.18× scroll speed (slowest layer).
+   ============================================================ */
 (function(){const c=document.getElementById('stars');for(let i=0;i<200;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()<.85?Math.random()*1.5+.5:Math.random()*3+1;s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;--dur:${3+Math.random()*6}s;--delay:${Math.random()*6}s;--op:${.3+Math.random()*.7};`;c.appendChild(s);}})();
 
 /* ============================================================
-   ENHANCEMENT 2 — PARALLAX SCROLL
-============================================================ */
+   PARALLAX SCROLL  (Enhancement 2)
+   ============================================================
+   Three-layer depth system driven by a passive scroll listener:
+
+   Layer          Element        Speed coefficient
+   ─────────────────────────────────────────────────
+   Background     #stars         0.18× scrollY  (slowest)
+   Mid            #hero          0.28× scrollY
+   Foreground     page content   normal scroll  (fastest)
+
+   Section titles (.section-title) also get a subtle opacity +
+   translateY reveal: as each title enters the viewport from
+   below, it fades in and rises into place. The ratio is
+   clamped 0→1 based on (windowHeight - rect.top) / (0.7 * wH).
+
+   IntersectionObserver handles the one-shot .fade-up reveals
+   (opacity 0 + translateY 24px → visible) at 10% threshold.
+   ============================================================ */
 window.addEventListener('scroll',()=>{
   const sy=window.scrollY;
   document.getElementById('stars').style.transform=`translateY(${sy*0.18}px)`;
@@ -822,8 +982,31 @@ const ioFade=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isInters
 document.querySelectorAll('.fade-up').forEach(el=>ioFade.observe(el));
 
 /* ============================================================
-   ENHANCEMENT 1b — WebGL PARTICLE VORTEX
-============================================================ */
+   WebGL PARTICLE VORTEX  (Enhancement 1b)
+   ============================================================
+   2400 points rendered via WebGL on a fixed canvas behind
+   all page content. Audio RMS feeds `window._setParticleRMS`.
+
+   SHADER PAIR
+   • Vertex shader: maps 2D position → clip space, adjusts
+     aspect ratio, sets gl_PointSize (3.5px fresh → 0.4px old).
+   • Fragment shader: circular soft disc via dot(coord,coord),
+     alpha = uAlpha × (1 − distance²). Colour is fixed cyan
+     (#00f5e4 ≈ rgb(0, 0.96, 0.894)).
+   • Blend mode: SRC_ALPHA + ONE (additive) for glow stacking.
+
+   PHYSICS (CPU, per frame)
+   Each particle has position, velocity, age, and life (2–6s).
+   Every frame:
+     1. age += 0.004 / life  (faster life = younger-feeling)
+     2. On death: respawn at random angle/radius
+     3. Tangential force: perpendicular to radius vector,
+        scaled by spiral factor (0.28 + rms×2.5) — higher RMS
+        makes particles orbit faster and tighter.
+     4. Inward pull: −pos × 0.0007 keeps particles from drifting
+        off screen.
+   Global alpha: 0.45 + rms×0.9  (brighter when louder).
+   ============================================================ */
 (function initWebGL(){
   const canvas=document.getElementById('particle-canvas');
   const gl=canvas.getContext('webgl',{alpha:true,antialias:false,premultipliedAlpha:false});
@@ -885,7 +1068,49 @@ document.querySelectorAll('.fade-up').forEach(el=>ioFade.observe(el));
 
 /* ============================================================
    AUDIO ENGINE
-============================================================ */
+   ============================================================
+   Built on the Web Audio API. All nodes are created once and
+   persist for the lifetime of the page.
+
+   SHARED NODES (module scope, accessible by all IIFEs)
+   ┌─ actx          AudioContext (suspended until first click)
+   ├─ masterGain    Final output gain (volume control)
+   ├─ masterAn      AnalyserNode fftSize=2048 (metering + FFT viz)
+   ├─ conv          ConvolverNode (shared reverb)
+   ├─ revWet        Gain for convolver wet signal (preset-varied)
+   ├─ revDry        Gain for dry signal bypass
+   ├─ droneAn       AnalyserNode fftSize=512 (drone meter)
+   └─ dronePan      StereoPannerNode (lever + automation)
+
+   AUD OBJECT — lazy drone initialisation
+   ensureDrone() is called before any method that needs the drone.
+   It creates the oscillator stack only once (guarded by this.dn).
+
+   DRONE STACK (created in ensureDrone)
+   o1 (sawtooth, 55Hz) ─┐
+   o2 (sawtooth, 55Hz,  ├─→ WaveShaper → LowpassFilter → DroneGain
+       +10ct detune)   ─┘         └─→ SendGain → Convolver
+   sub (sine, 27.5Hz) ──────────────────────────────→ DroneGain
+   ShimmerNoise ──→ HighpassFilter(7kHz) → NoiseGain → Dry/Conv
+
+   IMPULSE RESPONSE — mkImpulse(seconds, decay, reverse, brightness)
+   Procedurally generates a stereo reverb impulse buffer using
+   exponentially-decaying white noise. Four presets:
+     small (0.8s), hall (2.5s), cathedral (4.2s), alien (3s, reversed)
+
+   AUD METHODS
+   setDronePower(on)  — exponential ramp to 0.35 (on) or 0.0001 (off)
+   setFilterCutoff(v) — maps 0–100 lever value to 60–7000Hz cutoff
+                        and -1→+1 stereo pan simultaneously
+   setXY(x,y)         — XY pad: x→cutoff, y→filter Q (0.5–18)
+   setPulse(on)       — connects/disconnects LFO → DroneGain.gain
+   setLfoShape/Speed  — oscillator type + frequency
+   playGranular()     — fires 40 randomised buffer sources over 5s
+   ui(type, opts)     — synthesises short UI feedback sounds:
+                        'click', 'toggle', 'lever', 'node', 'engage'
+   setReverb(name)    — rebuilds impulse + sets revWet gain
+   setPannerAuto(mode)— 'slow'|'orbit': LFO→pan; 'random': setInterval
+   ============================================================ */
 const AudioCtx=window.AudioContext||window.webkitAudioContext;
 const actx=new AudioCtx();
 const masterGain=actx.createGain();masterGain.gain.value=0.85;
@@ -959,7 +1184,30 @@ document.addEventListener('click',function r(){if(actx.state==='suspended')actx.
 
 /* ============================================================
    UI BINDINGS
-============================================================ */
+   ============================================================
+   Wires DOM controls to AUD methods. All handlers call
+   actx.resume() defensively before any audio operation.
+
+   LEVER (#lever-knob / #lever-track)
+   • Pointer capture drag: maps Y position within track to 0–100.
+   • On release: GSAP tweens the value ±4 for a spring-settle feel.
+   • Keyboard: ArrowUp/Right +2, ArrowDown/Left −2.
+   • setLV(v) is the single source of truth: updates gauge arc
+     stroke-dashoffset, stability text, all four telemetry readouts
+     (phase, flux, temp, ping), AUD.setFilterCutoff, and meter fill.
+
+   POWER TOGGLE   — AUD.setDronePower, navDot active class
+   PULSE TOGGLE   — AUD.setPulse
+   LFO SHAPE      — AUD.setLfoShape
+   LFO SPEED      — AUD.setLfoSpeed
+   REVERB PRESET  — AUD.setReverb (rebuilds impulse response)
+   PANNER AUTO    — AUD.setPannerAuto (stops previous before setting)
+   ENGAGE BTN     — AUD.ui('engage') + GSAP hue-rotate flash on hero
+   RESET BTN      — Restores all controls to defaults
+   JUMP BTN       — AUD.ui('engage') + smooth scroll to console
+   PREVIEW CARDS  — Short triangle-wave chord on click
+   BIO TOGGLE     — Expands #expanded-bio panel
+   ============================================================ */
 const freqInput=document.getElementById('freqInput');
 const gaugeArc=document.getElementById('gauge-arc');
 const stabilityValue=document.getElementById('stabilityValue');
@@ -1002,8 +1250,26 @@ document.getElementById('bio-toggle').addEventListener('click',()=>{const b=docu
 document.getElementById('logBtn').addEventListener('click',()=>{AUD.ui('click',{pitch:880});logEv('Logbook accessed');});
 
 /* ============================================================
-   ENHANCEMENT 4 — XY PAD
-============================================================ */
+   XY SYNTH PAD  (Enhancement 4)
+   ============================================================
+   A 300×150 canvas that maps 2D pointer position to two
+   simultaneous filter parameters:
+   • X axis (left→right) : filter cutoff frequency 60→7000Hz
+   • Y axis (bottom→top) : filter resonance Q 0.5→18
+
+   This exposes the BiquadFilter.Q parameter that was hardwired
+   to 0.9 previously — the XY pad is the only way to reach it.
+
+   VISUAL LAYERS (drawn every rAF frame)
+   1. Dark fill + subtle grid lines
+   2. Axis labels ("Q↑" / "Q↓")
+   3. Trail history: last 20 pointer positions, fading radially
+   4. Crosshair: dashed lines through current position
+   5. Glow halo + solid core dot at current position
+
+   Pointer capture ensures dragging outside the canvas still
+   updates values smoothly without losing the active state.
+   ============================================================ */
 (function initXYPad(){
   const canvas=document.getElementById('xy-pad-canvas');
   const ctx=canvas.getContext('2d');
@@ -1042,7 +1308,20 @@ document.getElementById('logBtn').addEventListener('click',()=>{AUD.ui('click',{
 
 /* ============================================================
    VISUAL METERING
-============================================================ */
+   ============================================================
+   rmsOf(analyserNode) → computes RMS from time-domain buffer:
+     1. getByteTimeDomainData fills a Uint8Array (128 = silence)
+     2. Each sample is normalised: v = (byte − 128) / 128
+     3. RMS = sqrt(mean(v²)), clamped 0–1, scaled ×2.5
+
+   meterLoop() runs every rAF frame and:
+   • Computes lD (drone RMS) and lM (master RMS)
+   • Draws two gradient bar meters (drone: cyan→purple,
+     master: green→pink) onto their respective canvases
+   • Pushes lM to window._setParticleRMS → WebGL vortex alpha
+   • Pushes lM to window._setTrailRMS   → cursor trail size/color
+   • Updates masterControlMeter + playMeter fill widths
+   ============================================================ */
 const dMC=document.getElementById('droneMeter'),mMC=document.getElementById('masterMeter');
 const dMX=dMC.getContext('2d'),mMX=mMC.getContext('2d');
 function rmsOf(an){const b=new Uint8Array(an.fftSize);try{an.getByteTimeDomainData(b);}catch(e){}let s=0;for(let i=0;i<b.length;i++){const v=(b[i]-128)/128;s+=v*v;}return Math.min(1,Math.sqrt(s/b.length)*2.5);}
@@ -1059,8 +1338,24 @@ function rmsOf(an){const b=new Uint8Array(an.fftSize);try{an.getByteTimeDomainDa
 })();
 
 /* ============================================================
-   ENHANCEMENT 3 — CIRCULAR FFT OSCILLOSCOPE
-============================================================ */
+   CIRCULAR FFT OSCILLOSCOPE  (Enhancement 3)
+   ============================================================
+   Replaces the original flat bar chart with a polar frequency
+   display. Runs its own rAF loop reading masterAn.
+
+   RENDERING
+   • Background: semi-transparent fill (rgba 2,2,12,0.22) creates
+     motion blur / persistence effect without clearRect.
+   • Inner glow ring: radial gradient at baseR (55px) radius.
+   • Frequency bars: each FFT bin maps to an angle (0→2π).
+     Bar extends from baseR outward, length = v × (maxR − baseR).
+     Hue = 175 + v×110 (teal → magenta with amplitude).
+   • Mirror mode (default ON): maps bins to 0→π then mirrors
+     across the vertical axis for bilateral symmetry.
+   • Toggle: clicking #vis-mirror-btn or the canvas switches
+     mirror on/off, updating button label accordingly.
+   • Center fill: radial gradient gives a soft glowing core.
+   ============================================================ */
 (function initCircVis(){
   const canvas=document.getElementById('visualizer');
   const ctx=canvas.getContext('2d');
@@ -1095,7 +1390,35 @@ function rmsOf(an){const b=new Uint8Array(an.fftSize);try{an.getByteTimeDomainDa
 
 /* ============================================================
    MUSIC STUDIO
-============================================================ */
+   ============================================================
+   Three tracks generated entirely via Web Audio API on page load.
+   No audio files are fetched — all content is procedural.
+
+   TRACK GENERATION  gen(duration, type, seed)
+   Uses a seeded LCG (Linear Congruential Generator) for
+   deterministic pseudo-random sample values so tracks sound
+   the same on every load.
+   • 'pad'     — Two detuned sine layers + high shimmer, slow
+                 exponential decay envelope
+   • 'plucked' — Burst of noise every 0.25s + decaying 440Hz sine
+                 simulates a plucked string
+   • 'noise'   — Shaped noise with slow exponential rolloff
+
+   SCHEDULING
+   AudioBufferSourceNode starts from pausedAt offset. On play,
+   startTime = actx.currentTime − pausedAt so the progress rAF
+   loop stays in sync. source.onended fires nextTrack().
+
+   WAVEFORM PREVIEW
+   drawWave() reads the mono channel data, finds min/max per
+   pixel column, and draws vertical lines — a standard peak
+   waveform display scaled to the canvas height.
+
+   ROUTING
+   Player → StereoPanner → Convolver (send) + ReverbDry (bypass)
+   Shares the same reverb as the drone, so reverb preset changes
+   affect the music player too.
+   ============================================================ */
 (function initMusic(){
   const ppBtn=document.getElementById('playPause'),prevBtn=document.getElementById('prevTrack'),nextBtn=document.getElementById('nextTrack');
   const nowTitle=document.getElementById('nowTitle'),nowMeta=document.getElementById('nowMeta'),plistEl=document.getElementById('playlist');
@@ -1129,7 +1452,21 @@ function rmsOf(an){const b=new Uint8Array(an.fftSize);try{an.getByteTimeDomainDa
 
 /* ============================================================
    GALLERY
-============================================================ */
+   ============================================================
+   8 photo cards in a responsive CSS grid (4→3→2→1 columns).
+   SVG placeholders are generated inline — each is a 600×800
+   SVG with a unique two-color linear gradient, radial vignette,
+   and a "PLATE N" label. When a user uploads images via the
+   hidden file input, FileReader replaces the placeholder src.
+
+   LIGHTBOX  openLB(index)
+   • Creates overlay + content div, appends to #lightboxRoot.
+   • GSAP fade-in (0.15s). Click outside closes it.
+   • Prev/Next buttons call navLB(±1): GSAP fade-out → remove →
+     openLB(nextIndex). Keyboard: Enter/Space on card opens LB.
+   • "Buy Print" calls openCheckout with the image src.
+   • "Download" is a direct <a download> link to the src data URI.
+   ============================================================ */
 (function initGallery(){
   const ITEMS=[
     {title:'Lumen Market Plaza',location:'Nebula Market — Lumen District',caption:'Microglass instruments under neon canopies.'},
@@ -1157,8 +1494,38 @@ function rmsOf(an){const b=new Uint8Array(an.fftSize);try{an.getByteTimeDomainDa
 })();
 
 /* ============================================================
-   ENHANCEMENT 6 — DIMENSIONAL STAR MAP
-============================================================ */
+   DIMENSIONAL STAR MAP  (Enhancement 6)
+   ============================================================
+   Pannable canvas graph representing the 8 gallery locations
+   as interconnected dimensional nodes.
+
+   DATA
+   NODES[8]  — id, name, loc, freq (Hz), x/y (0–1 normalized),
+                r (radius), col (hex), visited (bool)
+   EDGES[12] — pairs of node IDs forming the graph topology
+
+   COORDINATE SYSTEM
+   Nodes store normalised 0–1 positions. w2c(nx, ny) converts to
+   canvas pixels: x = nx × canvas.width + panX. This means
+   panning simply shifts panX/panY and all positions follow.
+
+   PAN INTERACTION
+   Pointer down: if within r+8px of a node → visit it.
+   Otherwise → start drag (capture pointer, track delta from
+   dragStart to current, apply to panX/panY).
+
+   VISIT EVENT
+   Sets node.visited = true, plays AUD.ui('node') at the node's
+   freq, shows a tooltip for 2.4s, logs to eventLog.
+
+   RENDERING (per frame, gt+=0.005 time counter)
+   1. Dark fill + 90 procedural background micro-stars
+   2. EDGES: unvisited = faint dashed; visited = solid cyan +
+      animated travel pulse (a small glow dot that traverses
+      the edge at (gt×0.65) % 1 progress)
+   3. NODES: outer glow halo, pulsing ring (sin wave), fill,
+      name + location labels. Visited nodes are brighter.
+   ============================================================ */
 (function initDimMap(){
   const canvas=document.getElementById('dimmap-canvas');
   const ctx=canvas.getContext('2d');
@@ -1265,8 +1632,25 @@ function rmsOf(an){const b=new Uint8Array(an.fftSize);try{an.getByteTimeDomainDa
 })();
 
 /* ============================================================
-   CHECKOUT
-============================================================ */
+   CHECKOUT MODAL
+   ============================================================
+   Prototype e-commerce modal. Currently simulates an order.
+   To go live: set CHECKOUT_REDIRECT_URL to a Stripe Payment
+   Link or your own checkout endpoint. On proceed, the modal
+   will redirect to:
+     CHECKOUT_REDIRECT_URL?title=...&email=...&qty=...
+
+   USAGE
+   openCheckout({ title, amount, image })
+   Called from:
+   • "Buy Now" button in Music Studio (track title, $29)
+   • "Buy Print" in each gallery lightbox ($49)
+   • "Buy Print" in the gallery lightbox Buy button
+
+   The modal renders an optional image preview, email input,
+   and a styled Proceed button showing the formatted price.
+   Validation requires a valid email (contains '@').
+   ============================================================ */
 function openCheckout({title='Print',amount=29,image=null}={}){
   const root=document.getElementById('checkoutRoot');root.innerHTML='';
   const ov=document.createElement('div');ov.className='co-modal';
@@ -1282,7 +1666,57 @@ function openCheckout({title='Print',amount=29,image=null}={}){
 
 /* ============================================================
    STEP SEQUENCER
-============================================================ */
+   ============================================================
+   A 4-row × 8-step pattern sequencer with a Web Audio
+   lookahead scheduler — the gold standard for tight timing
+   in browser audio (see Chris Wilson's "A Tale of Two Clocks").
+
+   STATE
+   state[row][step] = { armed: bool, note: string }
+   Notes default to the row's selected scale, 8 per row.
+   Four scales: pentatonic, minor, chromatic, fifths.
+
+   SCHEDULER  (setInterval every 30ms)
+   Looks 100ms (LOOKAHEAD) ahead into audio time. For each
+   step whose scheduled time falls within the lookahead window:
+     • Calls fireNote(row, step, when) for all 4 rows
+     • Advances nextStepTime by stepDuration(step)
+     • stepDuration = base 8th note (60/bpm/2) + swing offset
+       on odd steps (swing × base, range 0–0.4×base)
+
+   fireNote(row, step, when)
+   Creates a fresh OscillatorNode per note (Web Audio best practice
+   — oscillators are cheap and designed for single use):
+     Oscillator → BiquadFilter(lowpass) → EnvGain → Conv + Dry
+   Envelope: 12ms attack, exponential decay to silence.
+   Each row has a different filter cutoff (2400, 3200, 4000, 4800Hz)
+   giving each voice a distinct timbral brightness.
+
+   VISUAL SYNC  (visTick, rAF loop)
+   Reads currentStep (advanced by scheduler). When it changes,
+   updatePlayheadUI() lights step indicators, flashes cells,
+   updates telemetry readouts, redraws the viz strip, logs event.
+
+   VIZ STRIP  drawViz(activeStep)
+   800×60 canvas showing all 8 steps. Armed cells per row are
+   drawn as colour-coded bars (cyan/purple/gold/green per row).
+   Active column gets a bright highlight. Beat markers (steps
+   0,2,4,6) show a bottom stripe for visual meter reference.
+
+   GRID BUILD
+   Built entirely in JS: for each row, a label div with a scale
+   <select> + 8 .seq-cell divs. Cells toggle state[r][s].armed
+   and play a pitch-matched UI sound on click. Scale changes
+   update all note values and cell labels in that row live.
+
+   TRANSPORT
+   Play  — sets playing=true, initialises nextStepTime, starts
+           setInterval scheduler
+   Stop  — clears interval, resets step to -1, clears playhead UI
+   Clear — disarms all cells
+   Random— probabilistic fill (50/40/35/30% per row density)
+   BPM   — ±5 per click, range 60–240, immediate effect
+   ============================================================ */
 (function initSequencer(){
   /* ---- DATA ---- */
   const STEPS = 8, ROWS = 4;
@@ -1327,15 +1761,25 @@ function openCheckout({title='Print',amount=29,image=null}={}){
     const dur = 60 / bpm * 0.42;
     const osc = actx.createOscillator();
     osc.type = waveform;
-    osc.frequency.value = freq;
+    // Schedule oscillator pitch at the precise future `when` time,
+    // matching the lookahead scheduler pattern used by the envelope.
+    // Assigning .value directly would be evaluated at call time, not
+    // at the scheduled audio-time, causing pitch drift under CPU load.
+    osc.frequency.setValueAtTime(freq, when);
     const env = actx.createGain();
     env.gain.setValueAtTime(0.001, when);
     env.gain.linearRampToValueAtTime(0.28, when + 0.012);
     env.gain.exponentialRampToValueAtTime(0.001, when + dur);
     const filt = actx.createBiquadFilter();
     filt.type = 'lowpass';
-    filt.frequency.value = 2400 + row * 800;
-    filt.Q.value = 1.2;
+    // FIX (line 1771): was `filt.frequency.value = 2400 + row * 800`
+    // Static .value assignment is evaluated immediately at JS-call time,
+    // not at the scheduled audio-clock `when`. Under load the timing
+    // slips relative to the envelope, producing a filter click on attack.
+    // Clamped to 800–18000 Hz (safe sub-Nyquist range for all sample rates).
+    const filtFreq = Math.min(18000, Math.max(800, 2400 + row * 800));
+    filt.frequency.setValueAtTime(filtFreq, when);
+    filt.Q.setValueAtTime(1.2, when);
     osc.connect(filt); filt.connect(env);
     env.connect(conv); env.connect(revDry);
     osc.start(when); osc.stop(when + dur + 0.02);

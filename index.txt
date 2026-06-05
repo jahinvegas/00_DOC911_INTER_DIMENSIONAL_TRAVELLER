@@ -295,6 +295,24 @@
     }
     .seq-canvas-wrap{border-radius:10px;overflow:hidden;border:1px solid var(--border);}
     #seq-viz{width:100%;height:60px;display:block;background:rgba(0,0,0,0.2);}
+    /* Select controls — separate from .btn to avoid overflow:hidden clipping the dropdown */
+    .sel{
+      font-family:'Syne Mono',monospace;font-size:.66rem;letter-spacing:.08em;
+      text-transform:uppercase;padding:8px 28px 8px 10px;border-radius:8px;
+      border:1px solid var(--border);background:rgba(0,0,0,0.4);color:var(--text);
+      cursor:pointer;outline:none;
+      appearance:none;-webkit-appearance:none;
+      /* Safe encoded SVG chevron — no unescaped < > in the attribute */
+      background-image:url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2210%22%20height%3D%226%22%3E%3Cpath%20d%3D%22M0%200l5%206%205-6z%22%20fill%3D%22%235a6a7e%22%2F%3E%3C%2Fsvg%3E");
+      background-repeat:no-repeat;background-position:right 8px center;
+      appearance:none;-webkit-appearance:none;
+      transition:border-color .2s,background-color .2s;
+      /* NO overflow:hidden — lets the native dropdown open freely */
+    }
+    .sel:hover{border-color:rgba(0,245,228,0.35);background-color:rgba(0,0,0,0.6);}
+    .sel:focus{border-color:rgba(0,245,228,0.5);outline:none;}
+    .sel option{background:#0a0f1a;color:var(--text);}
+
   </style>
 </head>
 <body>
@@ -453,20 +471,20 @@
           <div><div class="mono" style="font-size:.58rem;color:var(--muted);margin-bottom:6px;">Frequency</div><input id="freqInput" type="range" min="0" max="100" value="50" style="width:100%;"></div>
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
             <span class="mono" style="font-size:.58rem;color:var(--muted);">LFO</span>
-            <select id="lfoShape" class="btn" style="padding:6px 24px 6px 8px;font-size:.62rem;appearance:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22><path d=%22M0 0l6 8 6-8z%22 fill=%22%235a6a7e%22/></svg>');background-repeat:no-repeat;background-position:right 6px center;">
+            <select class="sel" id="lfoShape">
               <option value="sine">Sine</option><option value="triangle">Triangle</option><option value="square">Square</option><option value="sawtooth">Sawtooth</option>
             </select>
           </div>
           <div style="display:flex;gap:6px;align-items:center;"><span class="mono" style="font-size:.58rem;color:var(--muted);white-space:nowrap;">LFO Hz</span><input id="lfoSpeed" type="range" min="0.05" max="6" step="0.05" value="0.25" style="flex:1;"></div>
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
             <span class="mono" style="font-size:.58rem;color:var(--muted);">Reverb</span>
-            <select id="reverbPreset" class="btn" style="padding:6px 24px 6px 8px;font-size:.62rem;appearance:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22><path d=%22M0 0l6 8 6-8z%22 fill=%22%235a6a7e%22/></svg>');background-repeat:no-repeat;background-position:right 6px center;min-width:130px;">
+            <select class="sel" id="reverbPreset">
               <option value="small">Small Room</option><option value="hall">Hall</option><option value="cathedral">Cathedral</option><option value="alien">Alien Plate</option>
             </select>
           </div>
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
             <span class="mono" style="font-size:.58rem;color:var(--muted);">Panner</span>
-            <select id="pannerAutomation" class="btn" style="padding:6px 24px 6px 8px;font-size:.62rem;appearance:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22><path d=%22M0 0l6 8 6-8z%22 fill=%22%235a6a7e%22/></svg>');background-repeat:no-repeat;background-position:right 6px center;min-width:110px;">
+            <select class="sel" id="pannerAutomation">
               <option value="off">Off</option><option value="slow">Slow</option><option value="orbit">Orbit</option><option value="random">Random</option>
             </select>
           </div>
@@ -1126,60 +1144,233 @@ const dronePan=actx.createStereoPanner();dronePan.connect(droneAn);droneAn.conne
 function mkCurve(a){const k=a||50,n=44100,c=new Float32Array(n),d=Math.PI/180;for(let i=0;i<n;i++){const x=(i*2)/n-1;c[i]=((3+k)*x*20*d)/(Math.PI+k*Math.abs(x));}return c;}
 
 const AUD={
-  dn:null,lfo:null,lg:null,dg:null,filt:null,pan:dronePan,pat:null,
+  // ── State ──────────────────────────────────────────────────────
+  dn:null,          // drone oscillator nodes bundle
+  lfo:null,         // single shared LFO oscillator (sine, reused everywhere)
+  lfoGain:null,     // gain on LFO output — controls pulse depth
+  panGain:null,     // separate gain for panner automation depth
+  dg:null,          // drone master gain node
+  filt:null,        // shared lowpass filter
+  pan:dronePan,     // StereoPanner (created at module scope)
+  panMode:'off',    // current panner automation mode
+  patTimer:null,    // setInterval id for random panner mode
+
+  // ── Drone initialisation ───────────────────────────────────────
+  // Lazy: called before any method that needs the drone nodes.
   ensureDrone(){
-    if(this.dn)return;
-    const o1=actx.createOscillator();o1.type='sawtooth';o1.frequency.value=55;
-    const o2=actx.createOscillator();o2.type='sawtooth';o2.frequency.value=55;o2.detune.value=10;
-    const sub=actx.createOscillator();sub.type='sine';sub.frequency.value=27.5;
-    const filt=actx.createBiquadFilter();filt.type='lowpass';filt.frequency.value=700;filt.Q.value=0.9;
-    const ws=actx.createWaveShaper();ws.curve=mkCurve(6);ws.oversample='2x';
-    const g=actx.createGain();g.gain.value=0.0001;
-    ws.connect(filt);filt.connect(g);
+    if(this.dn) return;
+    if(actx.state==='suspended') actx.resume();
+
+    // Oscillator stack: two detuned saws + sub sine
+    const o1=actx.createOscillator(); o1.type='sawtooth'; o1.frequency.value=55;
+    const o2=actx.createOscillator(); o2.type='sawtooth'; o2.frequency.value=55; o2.detune.value=10;
+    const sub=actx.createOscillator(); sub.type='sine'; sub.frequency.value=27.5;
+
+    // Waveshaper soft-clip → lowpass filter → master drone gain
+    const ws=actx.createWaveShaper(); ws.curve=mkCurve(6); ws.oversample='2x';
+    const filt=actx.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value=700; filt.Q.value=0.9;
+    const dg=actx.createGain(); dg.gain.value=0.0001;
+    o1.connect(ws); o2.connect(ws); ws.connect(filt); filt.connect(dg);
+
+    // Sub goes straight to drone gain (no waveshaper)
+    sub.connect(dg);
+
+    // Drone → panner → droneAnalyser → reverb dry
+    // (dronePan is already wired to droneAn→revDry at module scope)
+    dg.connect(this.pan);
+
+    // Reverb send
+    const sg=actx.createGain(); sg.gain.value=0.6;
+    dg.connect(sg); sg.connect(conv);
+
+    // Shimmer noise layer: looping noise → highpass → low gain → reverb
     const nb=actx.createBuffer(1,actx.sampleRate*2,actx.sampleRate);
-    const nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=(Math.random()*2-1)*Math.exp(-i/nd.length);
-    const ns=actx.createBufferSource();ns.buffer=nb;ns.loop=true;
-    const hp=actx.createBiquadFilter();hp.type='highpass';hp.frequency.value=7000;
-    const ng=actx.createGain();ng.gain.value=0.001;
-    ns.connect(hp);hp.connect(ng);ng.connect(conv);ng.connect(revDry);ns.start();
-    o1.connect(ws);o2.connect(ws);sub.connect(g);
-    g.connect(this.pan);const sg=actx.createGain();sg.gain.value=0.6;g.connect(sg);sg.connect(conv);
-    o1.start();o2.start();sub.start();
-    const lfo=actx.createOscillator();lfo.type='sine';lfo.frequency.value=0.25;
-    const lg=actx.createGain();lg.gain.value=0.0;lfo.connect(lg);lfo.start();
-    this.dn={o1,o2,sub,ns};this.dg=g;this.filt=filt;this.lfo=lfo;this.lg=lg;
+    const nd=nb.getChannelData(0); for(let i=0;i<nd.length;i++) nd[i]=(Math.random()*2-1)*Math.exp(-i/nd.length);
+    const ns=actx.createBufferSource(); ns.buffer=nb; ns.loop=true;
+    const hp=actx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=7000;
+    const ng=actx.createGain(); ng.gain.value=0.001;
+    ns.connect(hp); hp.connect(ng); ng.connect(conv); ng.connect(revDry); ns.start();
+
+    // Single shared LFO — used for both pulse modulation AND panner automation
+    // Shape and speed are controlled by setLfoShape / setLfoSpeed
+    const lfo=actx.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.25; lfo.start();
+
+    // lfoGain: routes LFO → dg.gain for pulse mode (default disconnected, depth=0)
+    const lfoGain=actx.createGain(); lfoGain.gain.value=0;
+    lfo.connect(lfoGain);
+    // NOTE: lfoGain is NOT connected to dg.gain yet — setPulse(true) connects it
+
+    // panGain: routes LFO → pan.pan for panner automation (default disconnected)
+    const panGain=actx.createGain(); panGain.gain.value=0;
+    lfo.connect(panGain);
+    // NOTE: panGain is NOT connected to pan.pan yet — setPannerAuto() connects it
+
+    o1.start(); o2.start(); sub.start();
+
+    this.dn={o1,o2,sub,ns};
+    this.dg=dg; this.filt=filt; this.lfo=lfo; this.lfoGain=lfoGain; this.panGain=panGain;
   },
-  setDronePower(on){this.ensureDrone();const now=actx.currentTime;if(on){this.dg.gain.cancelScheduledValues(now);this.dg.gain.setValueAtTime(this.dg.gain.value||.0001,now);this.dg.gain.exponentialRampToValueAtTime(.35,now+.8);}else{this.dg.gain.cancelScheduledValues(now);this.dg.gain.setValueAtTime(this.dg.gain.value,now);this.dg.gain.exponentialRampToValueAtTime(.0001,now+.8);}},
-  setFilterCutoff(v){this.ensureDrone();this.filt.frequency.setTargetAtTime(60+(v/100)*6940,actx.currentTime,.06);this.pan.pan.setTargetAtTime((v/100)*2-1,actx.currentTime,.12);},
-  setXY(x,y){this.ensureDrone();this.filt.frequency.setTargetAtTime(60+(x/100)*6940,actx.currentTime,.04);this.filt.Q.setTargetAtTime(.5+(y/100)*17.5,actx.currentTime,.04);},
-  setPulse(on){this.ensureDrone();if(on){try{this.lg.disconnect();}catch(e){}try{this.lg.connect(this.dg.gain);this.lg.gain.setValueAtTime(.28,actx.currentTime);}catch(e){}}else{try{this.lg.disconnect(this.dg.gain);}catch(e){};}},
-  setLfoShape(s){if(this.lfo)try{this.lfo.type=s;}catch(e){}},
-  setLfoSpeed(hz){if(this.lfo)this.lfo.frequency.setTargetAtTime(hz,actx.currentTime,.02);},
-  playGranular(dur=5,den=40){
-    if(actx.state==='suspended')actx.resume();
-    const l=Math.floor(actx.sampleRate*1.2),buf=actx.createBuffer(1,l,actx.sampleRate),da=buf.getChannelData(0);
-    for(let i=0;i<l;i++)da[i]=(Math.random()*2-1)*Math.exp(-i/l);
-    for(let i=0;i<den;i++){const st=actx.currentTime+i*(dur/den);const src=actx.createBufferSource();src.buffer=buf;src.playbackRate.value=.5+Math.random()*1.6;const g=actx.createGain();g.gain.setValueAtTime(.0001,st);g.gain.linearRampToValueAtTime(.12*Math.random(),st+.01);g.gain.exponentialRampToValueAtTime(.0001,st+.15+Math.random()*.6);const f=actx.createBiquadFilter();f.type='lowpass';f.frequency.value=200+Math.random()*2500;src.connect(f);f.connect(g);g.connect(conv);g.connect(revDry);src.start(st);src.stop(st+.8);}
-  },
-  ui(type,opts={}){
-    if(actx.state==='suspended')actx.resume();const now=actx.currentTime;
-    const mk=(type,freq,dur,vol=.12)=>{const o=actx.createOscillator();o.type=type;o.frequency.value=freq;const g=actx.createGain();g.gain.setValueAtTime(.0001,now);o.connect(g);g.connect(masterAn);g.gain.linearRampToValueAtTime(vol,now+.01);g.gain.exponentialRampToValueAtTime(.0001,now+dur);o.start(now);o.stop(now+dur+.02);};
-    if(type==='click')mk('sine',opts.pitch||1000,.11);
-    else if(type==='toggle')mk('triangle',opts.pitch||420,.2,.08);
-    else if(type==='lever')mk('triangle',160+(opts.value||50)*5,.08,.06);
-    else if(type==='node'){const o=actx.createOscillator();o.type='sine';o.frequency.value=opts.pitch||440;const g=actx.createGain();g.gain.setValueAtTime(.0001,now);o.connect(g);g.connect(conv);g.connect(masterAn);g.gain.linearRampToValueAtTime(.18,now+.02);g.gain.exponentialRampToValueAtTime(.0001,now+.9);o.start(now);o.stop(now+1);}
-    else if(type==='engage'){const o=actx.createOscillator();o.type='sawtooth';const f=actx.createBiquadFilter();f.type='lowpass';f.frequency.value=200;const g=actx.createGain();g.gain.setValueAtTime(.0001,now);o.connect(f);f.connect(g);g.connect(masterAn);o.frequency.setValueAtTime(60,now);o.frequency.exponentialRampToValueAtTime(680,now+1.2);g.gain.linearRampToValueAtTime(.6,now+.06);g.gain.exponentialRampToValueAtTime(.0001,now+1.4);o.start(now);o.stop(now+1.4);}
-  },
-  setReverb(n){const p={small:[.8,1.6,false,.5,.14],hall:[2.5,2.2,false,.7,.22],cathedral:[4.2,3.2,false,.9,.34],alien:[3.0,1.2,true,1.0,.4]};const v=p[n]||p.small;conv.buffer=mkImpulse(...v.slice(0,4));revWet.gain.setTargetAtTime(v[4],actx.currentTime,.1);},
-  setPannerAuto(mode){
-    if(this.pat){if(this.pat.osc)try{this.pat.osc.stop();}catch(e){}else clearInterval(this.pat);this.pat=null;}
-    if(mode==='off')return;
+
+  // ── Drone power ────────────────────────────────────────────────
+  setDronePower(on){
     this.ensureDrone();
-    if(mode==='slow'||mode==='orbit'){const hz=mode==='slow'?.06:.25;const o=actx.createOscillator();o.type='sine';o.frequency.value=hz;const g=actx.createGain();g.gain.value=mode==='slow'?.8:.95;o.connect(g);g.connect(this.pan.pan);try{o.start();}catch(e){}this.pat={osc:o,g};}
-    else if(mode==='random')this.pat=setInterval(()=>this.pan.pan.setTargetAtTime(Math.random()*2-1,actx.currentTime,.6),600);
-  }
+    const now=actx.currentTime;
+    this.dg.gain.cancelScheduledValues(now);
+    this.dg.gain.setValueAtTime(this.dg.gain.value||0.0001,now);
+    if(on) this.dg.gain.exponentialRampToValueAtTime(0.35,now+0.8);
+    else   this.dg.gain.exponentialRampToValueAtTime(0.0001,now+0.8);
+  },
+
+  // ── Filter (lever + XY pad) ────────────────────────────────────
+  setFilterCutoff(v){
+    this.ensureDrone();
+    this.filt.frequency.setTargetAtTime(60+(v/100)*6940,actx.currentTime,0.06);
+    // Only move pan from lever if panner automation is off
+    if(this.panMode==='off'){
+      this.pan.pan.setTargetAtTime((v/100)*2-1,actx.currentTime,0.12);
+    }
+  },
+  setXY(x,y){
+    this.ensureDrone();
+    this.filt.frequency.setTargetAtTime(60+(x/100)*6940,actx.currentTime,0.04);
+    this.filt.Q.setTargetAtTime(0.5+(y/100)*17.5,actx.currentTime,0.04);
+  },
+
+  // ── LFO pulse mode ─────────────────────────────────────────────
+  // Connects/disconnects lfoGain → dg.gain to amplitude-modulate the drone
+  setPulse(on){
+    this.ensureDrone();
+    if(on){
+      this.lfoGain.gain.setValueAtTime(0.28,actx.currentTime);
+      try{ this.lfoGain.connect(this.dg.gain); }catch(e){}
+    } else {
+      this.lfoGain.gain.setValueAtTime(0,actx.currentTime);
+      try{ this.lfoGain.disconnect(this.dg.gain); }catch(e){}
+    }
+  },
+
+  // ── LFO shape + speed ──────────────────────────────────────────
+  // Both controls operate on the single shared LFO oscillator.
+  // ensureDrone() is called first so the LFO always exists.
+  setLfoShape(s){
+    this.ensureDrone();
+    try{ this.lfo.type=s; }catch(e){ console.warn('LFO shape error:',e); }
+  },
+  setLfoSpeed(hz){
+    this.ensureDrone();
+    this.lfo.frequency.setTargetAtTime(hz,actx.currentTime,0.02);
+  },
+
+  // ── Reverb preset ──────────────────────────────────────────────
+  // Rebuilds the convolver impulse response and adjusts wet level.
+  setReverb(n){
+    if(actx.state==='suspended') actx.resume();
+    const presets={
+      small:     [0.8,  1.6, false, 0.5,  0.14],
+      hall:      [2.5,  2.2, false, 0.7,  0.22],
+      cathedral: [4.2,  3.2, false, 0.9,  0.34],
+      alien:     [3.0,  1.2, true,  1.0,  0.40],
+    };
+    const v=presets[n]||presets.small;
+    conv.buffer=mkImpulse(v[0],v[1],v[2],v[3]);
+    revWet.gain.setTargetAtTime(v[4],actx.currentTime,0.15);
+  },
+
+  // ── Panner automation ──────────────────────────────────────────
+  // Reuses the single shared LFO (after ensureDrone) via panGain.
+  // This means setLfoShape and setLfoSpeed affect panner automation too.
+  setPannerAuto(mode){
+    if(actx.state==='suspended') actx.resume();
+    this.panMode=mode;
+
+    // Stop any previous random timer
+    if(this.patTimer){ clearInterval(this.patTimer); this.patTimer=null; }
+
+    // Disconnect panGain from pan.pan (stops LFO automation)
+    try{ this.panGain.disconnect(this.pan.pan); }catch(e){}
+
+    // Return pan to centre smoothly
+    this.pan.pan.cancelScheduledValues(actx.currentTime);
+    this.pan.pan.setTargetAtTime(0,actx.currentTime,0.3);
+
+    if(mode==='off') return;
+
+    this.ensureDrone();
+
+    if(mode==='slow'){
+      // Slow gentle sweep: LFO at its current frequency, depth 0.7
+      this.lfo.frequency.setTargetAtTime(0.06,actx.currentTime,0.1);
+      this.panGain.gain.setValueAtTime(0.8,actx.currentTime);
+      this.panGain.connect(this.pan.pan);
+    } else if(mode==='orbit'){
+      // Faster orbit: LFO at 0.4Hz, depth 0.95
+      this.lfo.frequency.setTargetAtTime(0.4,actx.currentTime,0.1);
+      this.panGain.gain.setValueAtTime(0.95,actx.currentTime);
+      this.panGain.connect(this.pan.pan);
+    } else if(mode==='random'){
+      // Random: setInterval fires setTargetAtTime with smooth glide
+      this.patTimer=setInterval(()=>{
+        this.pan.pan.setTargetAtTime(Math.random()*2-1,actx.currentTime,0.5);
+      },700);
+    }
+  },
+
+  // ── Granular texture ───────────────────────────────────────────
+  playGranular(dur=5,den=40){
+    if(actx.state==='suspended') actx.resume();
+    const l=Math.floor(actx.sampleRate*1.2),buf=actx.createBuffer(1,l,actx.sampleRate),da=buf.getChannelData(0);
+    for(let i=0;i<l;i++) da[i]=(Math.random()*2-1)*Math.exp(-i/l);
+    for(let i=0;i<den;i++){
+      const st=actx.currentTime+i*(dur/den);
+      const src=actx.createBufferSource(); src.buffer=buf; src.playbackRate.value=0.5+Math.random()*1.6;
+      const g=actx.createGain(); g.gain.setValueAtTime(0.0001,st);
+      g.gain.linearRampToValueAtTime(0.12*Math.random(),st+0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001,st+0.15+Math.random()*0.6);
+      const f=actx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=200+Math.random()*2500;
+      src.connect(f); f.connect(g); g.connect(conv); g.connect(revDry);
+      src.start(st); src.stop(st+0.8);
+    }
+  },
+
+  // ── UI feedback sounds ─────────────────────────────────────────
+  ui(type,opts={}){
+    if(actx.state==='suspended') actx.resume();
+    const now=actx.currentTime;
+    const mk=(wt,freq,dur,vol=0.12)=>{
+      const o=actx.createOscillator(); o.type=wt; o.frequency.value=freq;
+      const g=actx.createGain(); g.gain.setValueAtTime(0.0001,now);
+      o.connect(g); g.connect(masterAn);
+      g.gain.linearRampToValueAtTime(vol,now+0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001,now+dur);
+      o.start(now); o.stop(now+dur+0.02);
+    };
+    if(type==='click')       mk('sine',    opts.pitch||1000, 0.11);
+    else if(type==='toggle') mk('triangle',opts.pitch||420,  0.20, 0.08);
+    else if(type==='lever')  mk('triangle',160+(opts.value||50)*5, 0.08, 0.06);
+    else if(type==='node'){
+      const o=actx.createOscillator(); o.type='sine'; o.frequency.value=opts.pitch||440;
+      const g=actx.createGain(); g.gain.setValueAtTime(0.0001,now);
+      o.connect(g); g.connect(conv); g.connect(masterAn);
+      g.gain.linearRampToValueAtTime(0.18,now+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,now+0.9);
+      o.start(now); o.stop(now+1);
+    } else if(type==='engage'){
+      const o=actx.createOscillator(); o.type='sawtooth';
+      const fi=actx.createBiquadFilter(); fi.type='lowpass'; fi.frequency.value=200;
+      const g=actx.createGain(); g.gain.setValueAtTime(0.0001,now);
+      o.connect(fi); fi.connect(g); g.connect(masterAn);
+      o.frequency.setValueAtTime(60,now);
+      o.frequency.exponentialRampToValueAtTime(680,now+1.2);
+      g.gain.linearRampToValueAtTime(0.6,now+0.06);
+      g.gain.exponentialRampToValueAtTime(0.0001,now+1.4);
+      o.start(now); o.stop(now+1.4);
+    }
+  },
 };
 masterAn.connect(masterGain);
+// Load the default reverb impulse response at startup so the
+// convolver has a buffer before any sound plays through it.
+conv.buffer=mkImpulse(.8,1.6,false,.5);
 document.addEventListener('click',function r(){if(actx.state==='suspended')actx.resume();document.removeEventListener('click',r);},{once:true});
 
 /* ============================================================
@@ -1238,10 +1429,29 @@ function vib(p=10){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
 
 powerToggle.addEventListener('click',()=>{if(actx.state==='suspended')actx.resume();const s=powerToggle.getAttribute('aria-pressed')==='true';powerToggle.setAttribute('aria-pressed',String(!s));powerToggle.textContent=s?'OFF':'ON';AUD.ui('toggle',{pitch:s?360:480});AUD.setDronePower(!s);document.getElementById('sysState').textContent=!s?'Audio Active':'Dormant';navDot.classList.toggle('active',!s);logEv(`Audio ${!s?'enabled':'disabled'}`);vib(12);pwrFill.style.width=!s?'85%':'6%';});
 pulseToggle.addEventListener('click',()=>{if(actx.state==='suspended')actx.resume();const s=pulseToggle.getAttribute('aria-pressed')==='true';pulseToggle.setAttribute('aria-pressed',String(!s));pulseToggle.textContent=!s?'ON':'OFF';AUD.ui('toggle',{pitch:560});AUD.setPulse(!s);logEv(`Pulse ${!s?'on':'off'}`);vib(8);pulFill.style.width=!s?'68%':'6%';});
-document.getElementById('lfoShape').addEventListener('change',e=>{AUD.setLfoShape(e.target.value);AUD.ui('click',{pitch:1200});logEv(`LFO: ${e.target.value}`);});
-document.getElementById('lfoSpeed').addEventListener('input',e=>AUD.setLfoSpeed(Number(e.target.value)));
-document.getElementById('reverbPreset').addEventListener('change',e=>{AUD.setReverb(e.target.value);AUD.ui('click',{pitch:980});logEv(`Reverb: ${e.target.value}`);});
-document.getElementById('pannerAutomation').addEventListener('change',e=>{AUD.setPannerAuto(e.target.value);AUD.ui('click',{pitch:820});logEv(`Panner: ${e.target.value}`);});
+document.getElementById('lfoShape').addEventListener('change',e=>{
+  if(actx.state==='suspended')actx.resume();
+  AUD.setLfoShape(e.target.value);
+  AUD.ui('click',{pitch:1200});
+  logEv(`LFO shape: ${e.target.value}`);
+});
+document.getElementById('lfoSpeed').addEventListener('input',e=>{
+  if(actx.state==='suspended')actx.resume();
+  AUD.setLfoSpeed(Number(e.target.value));
+  logEv(`LFO speed: ${Number(e.target.value).toFixed(2)}Hz`);
+});
+document.getElementById('reverbPreset').addEventListener('change',e=>{
+  if(actx.state==='suspended')actx.resume();
+  AUD.setReverb(e.target.value);
+  AUD.ui('click',{pitch:980});
+  logEv(`Reverb: ${e.target.value}`);
+});
+document.getElementById('pannerAutomation').addEventListener('change',e=>{
+  if(actx.state==='suspended')actx.resume();
+  AUD.setPannerAuto(e.target.value);
+  if(e.target.value!=='off') AUD.ui('click',{pitch:820});
+  logEv(`Panner: ${e.target.value}`);
+});
 document.getElementById('engageBtn').addEventListener('click',()=>{if(actx.state==='suspended')actx.resume();AUD.ui('engage');gsap.fromTo('#hero',{filter:'hue-rotate(0deg)'},{filter:'hue-rotate(72deg)',duration:1,yoyo:true,repeat:1});logEv('Engage — sonic jump');vib([30,20,30]);});
 document.getElementById('resetBtn').addEventListener('click',()=>{AUD.ui('toggle');logEv('Reset');powerToggle.setAttribute('aria-pressed','false');powerToggle.textContent='OFF';pwrFill.style.width='6%';pulseToggle.setAttribute('aria-pressed','false');pulseToggle.textContent='OFF';pulFill.style.width='6%';AUD.setDronePower(false);AUD.setPulse(false);AUD.setPannerAuto('off');document.getElementById('pannerAutomation').value='off';document.getElementById('reverbPreset').value='small';AUD.setReverb('small');navDot.classList.remove('active');gsap.to({v:50},{v:50,duration:.6,onUpdate(){AUD.setFilterCutoff(50);}});});
 document.getElementById('jumpBtn').addEventListener('click',()=>{if(actx.state==='suspended')actx.resume();AUD.ui('engage');document.getElementById('console-section').scrollIntoView({behavior:'smooth'});logEv('Dimensional jump');vib([20,10,20,10,40]);});

@@ -173,6 +173,82 @@
     /* === ENHANCEMENT 2: PARALLAX === */
     .fade-up{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease;}
     .fade-up.visible{opacity:1;transform:none;}
+    /* === CURSOR TRAIL === */
+    #cursor-trail-canvas{width:100%;height:100%;}
+
+
+    /* === SEQUENCER === */
+    #sequencer-section{padding:80px 48px 120px;max-width:1400px;margin:0 auto;position:relative;z-index:10;}
+    .seq-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;}
+    .seq-row{display:contents;}
+    .seq-cell{
+      aspect-ratio:1;border-radius:10px;border:1px solid var(--border);
+      background:var(--surface);cursor:pointer;position:relative;
+      transition:border-color .15s,transform .08s;overflow:hidden;
+    }
+    .seq-cell::before{content:'';position:absolute;inset:0;border-radius:inherit;
+      background:linear-gradient(135deg,rgba(255,255,255,0.04),transparent);pointer-events:none;}
+    .seq-cell.active{
+      background:rgba(0,245,228,0.12);
+      border-color:rgba(0,245,228,0.5);
+      box-shadow:0 0 18px rgba(0,245,228,0.15), inset 0 0 12px rgba(0,245,228,0.06);
+    }
+    .seq-cell.playing{
+      background:rgba(0,245,228,0.28) !important;
+      border-color:var(--cyan) !important;
+      box-shadow:0 0 32px rgba(0,245,228,0.4), inset 0 0 20px rgba(0,245,228,0.15) !important;
+      transform:scale(0.93);
+    }
+    .seq-cell.active.playing{
+      background:rgba(196,91,255,0.35) !important;
+      border-color:var(--purple) !important;
+      box-shadow:0 0 32px rgba(196,91,255,0.5) !important;
+    }
+    .seq-cell-pitch{
+      position:absolute;bottom:5px;left:0;right:0;text-align:center;
+      font-family:'Syne Mono',monospace;font-size:.52rem;color:rgba(0,245,228,0.5);
+      letter-spacing:.05em;pointer-events:none;transition:color .15s;
+    }
+    .seq-cell.active .seq-cell-pitch{color:rgba(0,245,228,0.9);}
+    .seq-step-indicator{
+      width:6px;height:6px;border-radius:50%;background:var(--border);
+      margin:0 auto 6px;pointer-events:none;transition:background .08s;
+    }
+    .seq-step-indicator.lit{background:var(--cyan);box-shadow:0 0 6px var(--cyan);}
+
+    .seq-row-label{
+      display:flex;align-items:center;justify-content:flex-end;padding-right:10px;
+      font-family:'Syne Mono',monospace;font-size:.6rem;color:var(--muted);
+      letter-spacing:.1em;white-space:nowrap;
+    }
+    .seq-pitch-selector{
+      width:100%;background:rgba(0,0,0,0.3);border:1px solid var(--border);
+      border-radius:8px;padding:5px 8px;font-family:'Syne Mono',monospace;
+      font-size:.62rem;color:var(--cyan);appearance:none;cursor:pointer;
+      transition:border-color .2s;
+    }
+    .seq-pitch-selector:hover{border-color:rgba(0,245,228,0.3);}
+    .seq-waveform-btn{
+      width:32px;height:32px;border-radius:8px;border:1px solid var(--border);
+      background:var(--surface);font-size:.7rem;cursor:pointer;
+      color:var(--muted);transition:all .15s;display:flex;align-items:center;justify-content:center;
+    }
+    .seq-waveform-btn.sel{border-color:rgba(0,245,228,0.4);color:var(--cyan);background:rgba(0,245,228,0.06);}
+    .seq-transport-btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:7px;
+      font-family:'Syne Mono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;
+      padding:10px 20px;border-radius:10px;cursor:pointer;border:1px solid var(--border);
+      background:var(--surface);color:var(--text);transition:all .2s;position:relative;overflow:hidden;
+    }
+    .seq-transport-btn.play-active{
+      border-color:rgba(0,245,228,0.45);background:rgba(0,245,228,0.06);color:var(--cyan);
+    }
+    .seq-bpm-display{
+      font-family:'Unbounded',sans-serif;font-size:1.8rem;font-weight:900;
+      line-height:1;color:white;min-width:60px;text-align:center;
+    }
+    .seq-canvas-wrap{border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+    #seq-viz{width:100%;height:60px;display:block;background:rgba(0,0,0,0.2);}
   </style>
 </head>
 <body>
@@ -180,6 +256,9 @@
 <!-- CURSOR -->
 <div id="cursor"><div id="cursor-dot"></div></div>
 <div id="cursor-ring"></div>
+
+<!-- CURSOR TRAIL CANVAS -->
+<canvas id="cursor-trail-canvas" aria-hidden="true" style="position:fixed;inset:0;z-index:9997;pointer-events:none;"></canvas>
 
 <!-- ENHANCEMENT 1: BOOT SCREEN -->
 <div id="boot">
@@ -399,6 +478,72 @@
   </div>
 </section>
 
+<!-- SEQUENCER -->
+<div class="sec-div"></div>
+<section id="sequencer-section" aria-labelledby="seq-heading">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:44px;" class="fade-up">
+    <div>
+      <div class="section-label" style="margin-bottom:12px;">Pattern Engine</div>
+      <h2 id="seq-heading" class="section-title">Step Sequencer<br><span class="electric">Dimensional Rhythm</span></h2>
+    </div>
+    <div class="mono" style="font-size:.72rem;color:var(--muted);text-align:right;">8 steps &times; 4 rows<br>Click cells to arm</div>
+  </div>
+  <div class="panel p-6 fade-up" style="transition-delay:.1s">
+    <!-- TRANSPORT -->
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:26px;flex-wrap:wrap;">
+      <button id="seq-play" class="seq-transport-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>Play</button>
+      <button id="seq-stop" class="seq-transport-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18"/></svg>Stop</button>
+      <button id="seq-clear" class="seq-transport-btn">Clear</button>
+      <button id="seq-random" class="seq-transport-btn">Randomize</button>
+      <div style="display:flex;align-items:center;gap:14px;margin-left:auto;flex-wrap:wrap;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div class="mono" style="font-size:.55rem;color:var(--muted);">BPM</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button id="seq-bpm-dn" class="seq-transport-btn" style="padding:6px 10px;">&#8722;</button>
+            <div id="seq-bpm-val" class="seq-bpm-display">120</div>
+            <button id="seq-bpm-up" class="seq-transport-btn" style="padding:6px 10px;">+</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div class="mono" style="font-size:.55rem;color:var(--muted);">Swing</div>
+          <input id="seq-swing" type="range" min="0" max="0.4" step="0.01" value="0" style="width:80px;">
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div class="mono" style="font-size:.55rem;color:var(--muted);">Voice</div>
+          <div style="display:flex;gap:4px;" id="seq-wave-btns">
+            <button class="seq-waveform-btn sel" data-wave="sawtooth">&#8767;</button>
+            <button class="seq-waveform-btn" data-wave="square">&#8991;</button>
+            <button class="seq-waveform-btn" data-wave="triangle">&#9651;</button>
+            <button class="seq-waveform-btn" data-wave="sine">&#9675;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- STEP INDICATORS -->
+    <div style="display:grid;grid-template-columns:112px repeat(8,1fr);gap:8px;margin-bottom:5px;">
+      <div></div>
+      <div class="seq-step-indicator" id="si-0"></div>
+      <div class="seq-step-indicator" id="si-1"></div>
+      <div class="seq-step-indicator" id="si-2"></div>
+      <div class="seq-step-indicator" id="si-3"></div>
+      <div class="seq-step-indicator" id="si-4"></div>
+      <div class="seq-step-indicator" id="si-5"></div>
+      <div class="seq-step-indicator" id="si-6"></div>
+      <div class="seq-step-indicator" id="si-7"></div>
+    </div>
+    <!-- GRID -->
+    <div id="seq-grid-wrap" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <!-- VIZ ROW -->
+    <div style="display:grid;grid-template-columns:1fr 240px;gap:16px;margin-top:18px;align-items:start;">
+      <div class="seq-canvas-wrap"><canvas id="seq-viz" width="800" height="60"></canvas></div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="tele-box"><div class="tele-label" style="color:var(--cyan);">Step</div><div id="seq-step-display" class="tele-value">&#8212;</div></div>
+        <div class="tele-box"><div class="tele-label" style="color:var(--purple);">Note</div><div id="seq-note-display" class="tele-value" style="font-size:.9rem;">&#8212;</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- MUSIC -->
 <div class="sec-div"></div>
 <section id="music">
@@ -503,10 +648,12 @@
     {t:'[OK]  Oscillator stack: 3 voices (saw×2 + sub)',cls:'bl-ok'},
     {t:'[OK]  Convolver: Alien Plate impulse loaded',cls:'bl-ok'},
     {t:'[OK]  WebGL particle vortex: 2400 particles',cls:'bl-ok'},
+    {t:'[OK]  Cursor trail: audio-reactive RMS comet',cls:'bl-ok'},
     {t:'[OK]  Parallax layers: 3 depth coefficients',cls:'bl-ok'},
     {t:'[OK]  Circular FFT oscilloscope: mirror mode',cls:'bl-ok'},
     {t:'[OK]  XY Synth Pad: cutoff ↔ resonance Q',cls:'bl-ok'},
     {t:'[WARN] Dimensional coordinates: partial lock',cls:'bl-warn'},
+    {t:'[OK]  Step sequencer: 4 rows x 8 steps, swing',cls:'bl-ok'},
     {t:'[OK]  Star map: 8 nodes / 12 edges topology',cls:'bl-ok'},
     {t:'[OK]  Memory plates: 8 loaded',cls:'bl-ok'},
     {t:'[WARN] Stability index nominal — watch lever',cls:'bl-warn'},
@@ -536,13 +683,118 @@
 })();
 
 /* ============================================================
-   CURSOR
+   CURSOR + AUDIO-REACTIVE TRAIL
 ============================================================ */
 const cursorDot=document.getElementById('cursor-dot');
 const cursorRing=document.getElementById('cursor-ring');
 let mx=0,my=0,rx=0,ry=0;
 document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursorDot.style.left=mx+'px';cursorDot.style.top=my+'px';});
 (function ringRaf(){requestAnimationFrame(ringRaf);rx+=(mx-rx)*.12;ry+=(my-ry)*.12;cursorRing.style.left=Math.round(rx)+'px';cursorRing.style.top=Math.round(ry)+'px';})();
+
+(function initCursorTrail(){
+  const canvas=document.getElementById('cursor-trail-canvas');
+  const ctx=canvas.getContext('2d');
+  function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+  resize();window.addEventListener('resize',resize);
+
+  // Trail point: {x, y, age, life, size, hue, rms}
+  const trail=[];
+  const MAX_TRAIL=60;
+  let currentRMS=0; // fed from metering loop via window._setTrailRMS
+  let engageBurst=false,burstTimer=0;
+  window._setTrailRMS=v=>{currentRMS=v;};
+
+  // Feed from existing meterLoop — patched in after meterLoop runs
+  // Burst on engage button
+  document.addEventListener('click',e=>{
+    if(e.target && e.target.id==='engageBtn'){
+      engageBurst=true;burstTimer=60;
+    }
+  });
+
+  function hslFromRMS(rms){
+    // 0 rms = cyan (180), high rms = purple (280), burst = gold (45)
+    if(engageBurst) return 45;
+    return 180+rms*100;
+  }
+
+  (function loop(){
+    requestAnimationFrame(loop);
+    const W=canvas.width,H=canvas.height;
+    ctx.clearRect(0,0,W,H);
+
+    // Burst countdown
+    if(burstTimer>0){burstTimer--;if(burstTimer<=0)engageBurst=false;}
+
+    // Add new point at cursor position every frame
+    const rms=currentRMS;
+    const size=engageBurst
+      ? 8+Math.random()*24
+      : 3+rms*18;
+    const life=engageBurst?28:16+Math.round(rms*32);
+
+    if(mx>0||my>0){
+      trail.push({
+        x:mx+(engageBurst?(Math.random()-0.5)*80:0),
+        y:my+(engageBurst?(Math.random()-0.5)*80:0),
+        age:0,life,size,
+        hue:hslFromRMS(rms),
+        rms,
+        vx:(Math.random()-0.5)*(engageBurst?4:0.4),
+        vy:(Math.random()-0.5)*(engageBurst?4:0.4)-rms*1.5
+      });
+    }
+    if(trail.length>MAX_TRAIL) trail.splice(0,trail.length-MAX_TRAIL);
+
+    // Draw + age each point
+    for(let i=trail.length-1;i>=0;i--){
+      const p=trail[i];
+      p.age++;
+      p.x+=p.vx; p.y+=p.vy;
+      p.vx*=0.92; p.vy*=0.92;
+      if(p.age>=p.life){trail.splice(i,1);continue;}
+
+      const t=1-p.age/p.life; // 1 = fresh, 0 = dead
+      const alpha=t*t*(0.25+p.rms*0.55);
+      const radius=p.size*t;
+
+      const grad=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,radius*2.5);
+      grad.addColorStop(0,`hsla(${p.hue},100%,70%,${alpha})`);
+      grad.addColorStop(0.5,`hsla(${p.hue},100%,55%,${alpha*0.4})`);
+      grad.addColorStop(1,`hsla(${p.hue},100%,40%,0)`);
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,radius*2.5,0,Math.PI*2);
+      ctx.fillStyle=grad;
+      ctx.fill();
+
+      // solid core dot for fresh points
+      if(p.age<4){
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,Math.max(1,radius*0.35),0,Math.PI*2);
+        ctx.fillStyle=`hsla(${p.hue},100%,88%,${alpha*1.4})`;
+        ctx.fill();
+      }
+    }
+
+    // Hero title pulse driven by RMS + LFO
+    const brand=document.getElementById('main-brand');
+    if(brand && brand.style.opacity!=='0'){
+      const glow=currentRMS*60;
+      const pulse=currentRMS>0.04?`0 0 ${20+glow}px rgba(0,245,228,${0.15+currentRMS*0.5}), 0 0 ${60+glow*2}px rgba(0,245,228,${0.06+currentRMS*0.2})`:'none';
+      brand.style.textShadow=pulse;
+    }
+
+    // Nav dot intensity
+    if(currentRMS>0.05){
+      const dot=document.getElementById('navDot');
+      if(dot && dot.classList.contains('active')){
+        const s=0.5+currentRMS*0.5;
+        dot.style.transform=`scale(${s.toFixed(2)})`;
+        dot.style.boxShadow=`0 0 ${Math.round(6+currentRMS*20)}px var(--cyan)`;
+      }
+    }
+  })();
+})();
 
 /* ============================================================
    STARS
@@ -798,6 +1050,7 @@ function rmsOf(an){const b=new Uint8Array(an.fftSize);try{an.getByteTimeDomainDa
   requestAnimationFrame(meterLoop);
   const lD=rmsOf(droneAn),lM=rmsOf(masterAn);
   if(window._setParticleRMS)window._setParticleRMS(lM);
+  if(window._setTrailRMS)window._setTrailRMS(lM);
   function bar(cx,c,lv,c1,c2){cx.clearRect(0,0,c.width,c.height);cx.fillStyle='rgba(255,255,255,0.04)';cx.fillRect(0,0,c.width,c.height);const g=cx.createLinearGradient(0,0,c.width,0);g.addColorStop(0,c1);g.addColorStop(1,c2);cx.fillStyle=g;cx.fillRect(0,0,Math.floor(c.width*lv),c.height);}
   bar(dMX,dMC,lD,'#00f5e4','#c45bff');
   bar(mMX,mMC,lM,'#4ade80','#f472b6');
@@ -1026,6 +1279,326 @@ function openCheckout({title='Print',amount=29,image=null}={}){
   document.getElementById('coCancel').addEventListener('click',()=>{root.innerHTML='';});
   document.getElementById('coProceed').addEventListener('click',()=>{const em=document.getElementById('coEmail').value;if(!em||!em.includes('@')){document.getElementById('coMsg').textContent='Valid email required.';return;}AUD.ui('engage');document.getElementById('coMsg').textContent='Order simulated — no URL set.';setTimeout(()=>{root.innerHTML='';alert('Order placed (simulated) → '+em);logEv(`Simulated order: ${title}`);},900);});
 }
+
+/* ============================================================
+   STEP SEQUENCER
+============================================================ */
+(function initSequencer(){
+  /* ---- DATA ---- */
+  const STEPS = 8, ROWS = 4;
+  const SCALES = {
+    pentatonic: ['C3','D3','E3','G3','A3','C4','D4','E4','G4','A4','C5','D5'],
+    minor:      ['A2','B2','C3','D3','E3','F3','G3','A3','B3','C4','D4','E4'],
+    chromatic:  ['C3','C#3','D3','D#3','E3','F3','F#3','G3','G#3','A3','A#3','B3'],
+    fifth:      ['C3','G3','C4','G4','C5','G5','C3','G3'],
+  };
+  const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  function noteToFreq(note) {
+    const m = note.match(/^([A-G]#?)(\d)$/);
+    if (!m) return 220;
+    const semitone = NOTE_NAMES.indexOf(m[1]);
+    const octave = parseInt(m[2]);
+    return 440 * Math.pow(2, (semitone - 9 + (octave - 4) * 12) / 12);
+  }
+
+  // state[row][step] = { armed, note }
+  const state = Array.from({length: ROWS}, (_, r) => {
+    const scale = Object.values(SCALES)[r % Object.keys(SCALES).length];
+    return Array.from({length: STEPS}, (_, s) => ({
+      armed: false,
+      note: scale[s % scale.length]
+    }));
+  });
+
+  const ROW_NAMES = ['Voice A', 'Voice B', 'Voice C', 'Voice D'];
+  const ROW_SCALES = Object.keys(SCALES);
+  let currentScale = ['pentatonic','minor','chromatic','fifth'];
+
+  let bpm = 120, swing = 0, waveform = 'sawtooth';
+  let playing = false, currentStep = -1, schedulerTimer = null;
+  let nextStepTime = 0;
+
+  /* ---- AUDIO helpers ---- */
+  function fireNote(row, step, when) {
+    const cell = state[row][step];
+    if (!cell.armed) return;
+    if (actx.state === 'suspended') actx.resume();
+    const freq = noteToFreq(cell.note);
+    const dur = 60 / bpm * 0.42;
+    const osc = actx.createOscillator();
+    osc.type = waveform;
+    osc.frequency.value = freq;
+    const env = actx.createGain();
+    env.gain.setValueAtTime(0.001, when);
+    env.gain.linearRampToValueAtTime(0.28, when + 0.012);
+    env.gain.exponentialRampToValueAtTime(0.001, when + dur);
+    const filt = actx.createBiquadFilter();
+    filt.type = 'lowpass';
+    filt.frequency.value = 2400 + row * 800;
+    filt.Q.value = 1.2;
+    osc.connect(filt); filt.connect(env);
+    env.connect(conv); env.connect(revDry);
+    osc.start(when); osc.stop(when + dur + 0.02);
+  }
+
+  /* ---- SCHEDULER ---- */
+  const LOOKAHEAD = 0.1; // seconds
+  const SCHEDULE_INTERVAL = 30; // ms
+
+  function stepDuration(step) {
+    const base = 60 / bpm / 2; // 8th note
+    const swingOffset = (step % 2 === 1) ? base * swing : 0;
+    return base + swingOffset;
+  }
+
+  function scheduler() {
+    while (nextStepTime < actx.currentTime + LOOKAHEAD) {
+      const step = (currentStep + 1) % STEPS;
+      const when = nextStepTime;
+      // fire all armed rows at this step
+      for (let r = 0; r < ROWS; r++) fireNote(r, step, when);
+      // advance
+      nextStepTime += stepDuration(step);
+      currentStep = step;
+    }
+  }
+
+  /* ---- UI tick (synced to rAF, but derived from audio time) ---- */
+  let visStep = -1;
+  function visTick() {
+    if (!playing) { requestAnimationFrame(visTick); return; }
+    if (currentStep !== visStep) {
+      visStep = currentStep;
+      updatePlayheadUI(visStep);
+    }
+    requestAnimationFrame(visTick);
+  }
+  requestAnimationFrame(visTick);
+
+  function updatePlayheadUI(step) {
+    // step indicators
+    for (let s = 0; s < STEPS; s++) {
+      const ind = document.getElementById('si-' + s);
+      if (ind) ind.classList.toggle('lit', s === step);
+    }
+    // cell flash
+    for (let r = 0; r < ROWS; r++) {
+      for (let s = 0; s < STEPS; s++) {
+        const cell = document.getElementById(`scell-${r}-${s}`);
+        if (cell) cell.classList.toggle('playing', s === step);
+      }
+    }
+    // readout
+    const stepEl = document.getElementById('seq-step-display');
+    const noteEl = document.getElementById('seq-note-display');
+    if (stepEl) stepEl.textContent = step + 1;
+    if (noteEl) {
+      const armed = [];
+      for (let r = 0; r < ROWS; r++) {
+        if (state[r][step].armed) armed.push(state[r][step].note);
+      }
+      noteEl.textContent = armed.length ? armed.join(' ') : '—';
+    }
+    drawViz(step);
+    logEv(`Step ${step + 1}: ${(() => { const a = []; for(let r=0;r<ROWS;r++) if(state[r][step].armed) a.push(state[r][step].note); return a.length ? a.join('+') : 'rest'; })()}`);
+  }
+
+  /* ---- VIZ ---- */
+  const vizCanvas = document.getElementById('seq-viz');
+  const vizCtx = vizCanvas ? vizCanvas.getContext('2d') : null;
+  function drawViz(activeStep) {
+    if (!vizCtx) return;
+    const W = vizCanvas.width, H = vizCanvas.height;
+    vizCtx.clearRect(0, 0, W, H);
+    vizCtx.fillStyle = 'rgba(0,0,0,.2)'; vizCtx.fillRect(0, 0, W, H);
+    const cw = W / STEPS;
+    for (let s = 0; s < STEPS; s++) {
+      const armedRows = [];
+      for (let r = 0; r < ROWS; r++) if (state[r][s].armed) armedRows.push(r);
+      const isActive = s === activeStep;
+      // column bg
+      vizCtx.fillStyle = isActive ? 'rgba(0,245,228,.08)' : 'rgba(255,255,255,.02)';
+      vizCtx.fillRect(s * cw, 0, cw - 2, H);
+      armedRows.forEach((r, i) => {
+        const rowH = H / ROWS;
+        const barH = rowH * 0.7;
+        const y = r * rowH + (rowH - barH) / 2;
+        const colors = ['rgba(0,245,228,', 'rgba(196,91,255,', 'rgba(240,180,41,', 'rgba(74,222,128,'];
+        vizCtx.fillStyle = isActive ? colors[r] + '1)' : colors[r] + '.55)';
+        vizCtx.fillRect(s * cw + 2, y, cw - 6, barH);
+      });
+      // beat marker
+      if (s % 2 === 0) {
+        vizCtx.fillStyle = 'rgba(255,255,255,.07)';
+        vizCtx.fillRect(s * cw, H - 3, cw - 2, 3);
+      }
+    }
+  }
+  drawViz(-1);
+
+  /* ---- BUILD GRID ---- */
+  const gridWrap = document.getElementById('seq-grid-wrap');
+  if (gridWrap) {
+    for (let r = 0; r < ROWS; r++) {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:grid;grid-template-columns:112px repeat(8,1fr);gap:8px;align-items:center;';
+
+      // row label + pitch selector
+      const label = document.createElement('div');
+      label.className = 'seq-row-label';
+      const nameSpan = document.createElement('div');
+      nameSpan.textContent = ROW_NAMES[r];
+      nameSpan.style.cssText = 'font-size:.6rem;color:rgba(226,238,248,.7);';
+      const sel = document.createElement('select');
+      sel.className = 'seq-pitch-sel';
+      sel.dataset.row = r;
+      ROW_SCALES.forEach(sc => {
+        const opt = document.createElement('option');
+        opt.value = sc; opt.textContent = sc;
+        if (sc === currentScale[r]) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      sel.addEventListener('change', e => {
+        const row2 = parseInt(e.target.dataset.row);
+        currentScale[row2] = e.target.value;
+        const scale = SCALES[e.target.value];
+        for (let s = 0; s < STEPS; s++) {
+          state[row2][s].note = scale[s % scale.length];
+          const lbl = document.getElementById(`slbl-${row2}-${s}`);
+          if (lbl) lbl.textContent = state[row2][s].note;
+        }
+        AUD.ui('click', {pitch: 880});
+      });
+      label.appendChild(nameSpan);
+      label.appendChild(sel);
+      row.appendChild(label);
+
+      // cells
+      for (let s = 0; s < STEPS; s++) {
+        const cell = document.createElement('div');
+        cell.className = 'seq-cell';
+        cell.id = `scell-${r}-${s}`;
+        cell.tabIndex = 0;
+        cell.setAttribute('role', 'checkbox');
+        cell.setAttribute('aria-label', `Row ${r+1} step ${s+1}`);
+        const lbl = document.createElement('div');
+        lbl.className = 'seq-cell-label';
+        lbl.id = `slbl-${r}-${s}`;
+        lbl.textContent = state[r][s].note;
+        cell.appendChild(lbl);
+        cell.addEventListener('click', () => {
+          state[r][s].armed = !state[r][s].armed;
+          cell.classList.toggle('armed', state[r][s].armed);
+          cell.setAttribute('aria-checked', String(state[r][s].armed));
+          AUD.ui('click', {pitch: noteToFreq(state[r][s].note)});
+          drawViz(visStep);
+        });
+        cell.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cell.click(); }
+        });
+        row.appendChild(cell);
+      }
+      gridWrap.appendChild(row);
+    }
+  }
+
+  /* ---- TRANSPORT BUTTONS ---- */
+  const playBtn = document.getElementById('seq-play');
+  const stopBtn = document.getElementById('seq-stop');
+
+  function startSeq() {
+    if (playing) return;
+    if (actx.state === 'suspended') actx.resume();
+    playing = true;
+    currentStep = -1;
+    nextStepTime = actx.currentTime + 0.05;
+    schedulerTimer = setInterval(scheduler, SCHEDULE_INTERVAL);
+    playBtn && playBtn.classList.add('play-active');
+    logEv('Sequencer started');
+    AUD.ui('toggle', {pitch: 660});
+  }
+
+  function stopSeq() {
+    if (!playing) return;
+    playing = false;
+    clearInterval(schedulerTimer);
+    schedulerTimer = null;
+    currentStep = -1; visStep = -1;
+    playBtn && playBtn.classList.remove('play-active');
+    // clear playhead
+    for (let s = 0; s < STEPS; s++) {
+      const ind = document.getElementById('si-' + s);
+      if (ind) ind.classList.remove('lit');
+    }
+    for (let r = 0; r < ROWS; r++)
+      for (let s = 0; s < STEPS; s++) {
+        const cell = document.getElementById(`scell-${r}-${s}`);
+        if (cell) cell.classList.remove('playing');
+      }
+    const stepEl = document.getElementById('seq-step-display');
+    const noteEl = document.getElementById('seq-note-display');
+    if (stepEl) stepEl.textContent = '—';
+    if (noteEl) noteEl.textContent = '—';
+    drawViz(-1);
+    logEv('Sequencer stopped');
+    AUD.ui('toggle', {pitch: 360});
+  }
+
+  playBtn && playBtn.addEventListener('click', startSeq);
+  stopBtn && stopBtn.addEventListener('click', stopSeq);
+
+  document.getElementById('seq-clear') && document.getElementById('seq-clear').addEventListener('click', () => {
+    for (let r = 0; r < ROWS; r++)
+      for (let s = 0; s < STEPS; s++) {
+        state[r][s].armed = false;
+        const cell = document.getElementById(`scell-${r}-${s}`);
+        if (cell) { cell.classList.remove('armed'); cell.setAttribute('aria-checked','false'); }
+      }
+    drawViz(visStep);
+    AUD.ui('click', {pitch: 440});
+    logEv('Sequencer cleared');
+  });
+
+  document.getElementById('seq-random') && document.getElementById('seq-random').addEventListener('click', () => {
+    for (let r = 0; r < ROWS; r++)
+      for (let s = 0; s < STEPS; s++) {
+        const densities = [0.5, 0.4, 0.35, 0.3];
+        state[r][s].armed = Math.random() < densities[r];
+        const cell = document.getElementById(`scell-${r}-${s}`);
+        if (cell) { cell.classList.toggle('armed', state[r][s].armed); cell.setAttribute('aria-checked', String(state[r][s].armed)); }
+      }
+    drawViz(visStep);
+    AUD.ui('engage');
+    logEv('Sequencer randomized');
+  });
+
+  /* ---- BPM ---- */
+  const bpmDisplay = document.getElementById('seq-bpm-val');
+  function setBPM(v) {
+    bpm = Math.max(60, Math.min(240, v));
+    if (bpmDisplay) bpmDisplay.textContent = bpm;
+  }
+  document.getElementById('seq-bpm-up') && document.getElementById('seq-bpm-up').addEventListener('click', () => { setBPM(bpm + 5); AUD.ui('click', {pitch: 1100}); });
+  document.getElementById('seq-bpm-dn') && document.getElementById('seq-bpm-dn').addEventListener('click', () => { setBPM(bpm - 5); AUD.ui('click', {pitch: 700}); });
+
+  /* ---- SWING ---- */
+  document.getElementById('seq-swing') && document.getElementById('seq-swing').addEventListener('input', e => { swing = parseFloat(e.target.value); });
+
+  /* ---- WAVEFORM ---- */
+  document.querySelectorAll('.seq-waveform-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.seq-waveform-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      waveform = btn.dataset.wave;
+      AUD.ui('click', {pitch: 960});
+      logEv('Voice: ' + waveform);
+    });
+  });
+
+  /* ---- Add to boot log ---- */
+  logEv('Step sequencer online — 4 rows × 8 steps');
+})();
+
 </script>
 </body>
 </html>

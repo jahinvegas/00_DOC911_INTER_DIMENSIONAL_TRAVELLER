@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <!--
   ╔══════════════════════════════════════════════════════════════════════╗
   ║               DOC911 // INTER-DIMENSIONAL COMMAND                   ║
@@ -313,6 +313,392 @@
     .sel:focus{border-color:rgba(0,245,228,0.5);outline:none;}
     .sel option{background:#0a0f1a;color:var(--text);}
 
+    /* ================================================================
+       RESPONSIVE — TABLET  (≤1024px)
+    ================================================================ */
+    @media(max-width:1024px){
+      nav{padding:16px 24px;}
+      .nav-links{gap:20px;}
+      #about,#console-section,#music,#portfolio,#dimmap-section,
+      #sequencer-section{padding:80px 28px;}
+      #sequencer-section{padding-bottom:80px;}
+    }
+
+    /* ================================================================
+       RESPONSIVE — MOBILE  (≤768px)
+    ================================================================ */
+    @media(max-width:768px){
+
+      /* ── NAV ───────────────────────────────────────────────────── */
+      nav{padding:14px 18px;}
+      /* Hide nav links on mobile — logo + status only */
+      .nav-links{display:none;}
+      .nav-status .ctrl-meter{display:none;}
+
+      /* ── SECTIONS ──────────────────────────────────────────────── */
+      #about,#console-section,#music,#portfolio,
+      #dimmap-section,#sequencer-section{padding:60px 18px;}
+      #sequencer-section{padding-bottom:60px;}
+      #dimmap-section{padding-top:60px;}
+
+      /* ── HERO ──────────────────────────────────────────────────── */
+      #hero{padding:100px 18px 60px;}
+      #main-brand{font-size:clamp(56px,18vw,120px);}
+      #sub-brand{font-size:.65rem;letter-spacing:.18em;}
+      #hero-cta{flex-direction:column;align-items:center;gap:10px;margin-top:32px;}
+      #hero-cta .btn{width:100%;max-width:300px;justify-content:center;}
+
+      /* ── SECTION TITLES ────────────────────────────────────────── */
+      .section-title{font-size:clamp(1.6rem,7vw,2.4rem);}
+
+      /* ── ABOUT ─────────────────────────────────────────────────── */
+      /* Tailwind grid goes 1 col on mobile already via md: prefix,
+         but we need to ensure the gap and identity card are right */
+      .identity-card{padding:24px;}
+      .identity-avatar{width:60px;height:60px;font-size:1rem;margin-bottom:16px;}
+
+      /* ── CONSOLE — stack all 3 cols vertically ─────────────────── */
+      /* The console uses inline grid-template-columns:repeat(3,1fr) */
+      /* We override with a mobile-specific class */
+      .console-grid{
+        grid-template-columns:1fr !important;
+        gap:16px;
+      }
+      /* Lever + controls row: stack lever above sliders */
+      .lever-row{
+        flex-direction:column !important;
+        align-items:stretch !important;
+        gap:16px !important;
+      }
+      .lever-track{
+        width:100%;height:72px;flex-direction:row;
+        align-items:center;justify-content:flex-start;padding:10px 14px;
+      }
+      .lever-knob{width:52px;height:52px;}
+      /* XY pad — full width */
+      #xy-pad-canvas{width:100% !important;height:140px !important;}
+
+      /* ── SEQUENCER ─────────────────────────────────────────────── */
+      /* Transport bar: wrap tightly */
+      .seq-transport-bar{flex-wrap:wrap !important;gap:8px !important;}
+      .seq-transport-btn{padding:8px 12px;font-size:.6rem;}
+      .seq-bpm-display{font-size:1.3rem;min-width:44px;}
+      /* BPM + swing row: shrink */
+      .seq-bpm-row{gap:8px !important;}
+      /* Step grid: keep all 8 steps but shrink row label */
+      .seq-row-item{
+        grid-template-columns:72px repeat(8,1fr) !important;
+        gap:4px !important;
+      }
+      .seq-row-label{padding-right:4px;}
+      .seq-pitch-sel{font-size:.48rem;padding:3px 4px;}
+      .seq-cell{border-radius:6px;}
+      .seq-cell-label{font-size:.4rem;}
+      /* Viz + readout: stack */
+      .seq-bottom-row{
+        grid-template-columns:1fr !important;
+        gap:10px;
+      }
+      /* Step indicators: smaller dots */
+      .seq-step-indicator{width:5px;height:5px;}
+      .seq-ind-row{
+        grid-template-columns:72px repeat(8,1fr) !important;
+        gap:4px !important;
+      }
+
+      /* ── MUSIC STUDIO ──────────────────────────────────────────── */
+      .player-grid{grid-template-columns:1fr;}
+      #visualizer{height:180px;}
+      /* Player controls row: wrap */
+      .player-controls{flex-wrap:wrap;gap:8px;}
+
+      /* ── GALLERY ───────────────────────────────────────────────── */
+      .gallery-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+
+      /* ── DIM MAP ───────────────────────────────────────────────── */
+      #dimmap-canvas{height:340px !important;}
+      .map-tooltip{font-size:.62rem;min-width:130px;}
+
+      /* ── FOOTER ────────────────────────────────────────────────── */
+      footer{padding:40px 18px;}
+      .footer-inner{flex-direction:column;gap:16px;align-items:flex-start;}
+
+      /* ── SECTION DIVIDERS ──────────────────────────────────────── */
+      .sec-div{margin:0 18px;}
+
+      /* ── BOOT SCREEN ───────────────────────────────────────────── */
+      #boot-term{font-size:.62rem;line-height:1.9;}
+    }
+
+    /* ================================================================
+       RESPONSIVE — SMALL MOBILE  (≤480px)
+    ================================================================ */
+    @media(max-width:480px){
+      #main-brand{font-size:clamp(44px,20vw,90px);}
+      .gallery-grid{grid-template-columns:1fr;}
+      /* Sequencer: 4 steps visible, scroll horizontally */
+      .seq-grid-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      .seq-row-item{
+        grid-template-columns:60px repeat(8,minmax(36px,1fr)) !important;
+        min-width:380px;
+      }
+      .seq-ind-row{
+        grid-template-columns:60px repeat(8,minmax(36px,1fr)) !important;
+        min-width:380px;padding-bottom:4px;
+      }
+      /* Hide cursor trail canvas (not useful on touch) */
+      #cursor-trail-canvas{display:none;}
+      /* Hide custom cursor on touch devices */
+      #cursor,#cursor-ring{display:none;}
+      body{cursor:auto;}
+    }
+
+    /* ================================================================
+       TOUCH — disable hover effects that look broken on tap
+    ================================================================ */
+    @media(hover:none){
+      .node-card:hover{transform:none;box-shadow:none;}
+      .photo-card:hover{transform:none;box-shadow:none;}
+      .photo-card:hover img{transform:none;}
+      .btn:hover::after{opacity:0;}
+    }
+
+    @media(max-width:768px){
+      .p-6{padding:16px !important;}
+      .p-8{padding:20px !important;}
+      .p-4{padding:12px !important;}
+      /* About grid: force single column */
+      .md\:grid-cols-3{grid-template-columns:1fr !important;}
+      .md\:grid-cols-3.gap-8{gap:16px !important;}
+      /* Node cards row: scroll horizontally */
+      .md\:grid-cols-3:has(.node-card){
+        display:flex !important;
+        overflow-x:auto;
+        -webkit-overflow-scrolling:touch;
+        gap:12px;
+        padding-bottom:8px;
+      }
+      .node-card{min-width:220px;flex-shrink:0;}
+      /* Music player controls */
+      #playPause{width:52px;height:52px;}
+      #prevTrack,#nextTrack{width:40px;height:40px;}
+      /* Hide scrollbars but keep scroll */
+      .seq-grid-scroll::-webkit-scrollbar{display:none;}
+    }
+    @media(max-width:480px){
+      .p-6{padding:14px !important;}
+      .p-8{padding:16px !important;}
+    }
+
+    /* ================================================================
+       LOGBOOK
+    ================================================================ */
+    #logbook-section{padding:0 48px 120px;max-width:1400px;margin:0 auto;position:relative;z-index:10;}
+    @media(max-width:768px){#logbook-section{padding:0 18px 80px;}}
+
+    .log-entry{
+      display:grid;grid-template-columns:140px 1fr;gap:0 28px;
+      padding:28px 0;border-top:1px solid var(--border);
+      position:relative;
+    }
+    .log-entry:last-child{border-bottom:1px solid var(--border);}
+    @media(max-width:640px){
+      .log-entry{grid-template-columns:1fr;gap:10px;}
+    }
+    .log-date{
+      font-family:'Syne Mono',monospace;font-size:.62rem;letter-spacing:.12em;
+      color:var(--muted);text-transform:uppercase;line-height:1.8;
+      padding-top:3px;flex-shrink:0;
+    }
+    .log-date .log-coord{
+      display:block;font-size:.55rem;color:rgba(0,245,228,.4);margin-top:4px;letter-spacing:.08em;
+    }
+    .log-dot{
+      position:absolute;left:-1px;top:36px;width:8px;height:8px;
+      border-radius:50%;background:var(--border);border:2px solid var(--bg);
+      transition:background .3s;
+    }
+    .log-entry:hover .log-dot{background:var(--cyan);box-shadow:0 0 8px var(--cyan);}
+    .log-body{}
+    .log-title{
+      font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;
+      margin-bottom:8px;color:var(--text);
+    }
+    .log-text{
+      font-size:.88rem;line-height:1.85;color:rgba(226,238,248,.6);
+    }
+    .log-text p+p{margin-top:10px;}
+    .log-tag{
+      display:inline-flex;align-items:center;gap:5px;
+      font-family:'Syne Mono',monospace;font-size:.58rem;letter-spacing:.12em;
+      text-transform:uppercase;padding:3px 8px;border-radius:4px;
+      border:1px solid var(--border);color:var(--muted);margin-top:10px;margin-right:6px;
+    }
+    .log-tag.cyan{border-color:rgba(0,245,228,.25);color:rgba(0,245,228,.7);}
+    .log-tag.purple{border-color:rgba(196,91,255,.25);color:rgba(196,91,255,.7);}
+    .log-tag.gold{border-color:rgba(240,180,41,.25);color:rgba(240,180,41,.7);}
+
+    /* typewriter reveal */
+    .log-body .log-text{opacity:0;transform:translateY(8px);transition:opacity .6s ease,transform .6s ease;}
+    .log-entry.revealed .log-body .log-text{opacity:1;transform:none;}
+    .log-entry.revealed .log-dot{background:var(--cyan);box-shadow:0 0 8px var(--cyan);}
+
+    /* vertical timeline line */
+    .log-timeline{
+      position:relative;padding-left:20px;
+      border-left:1px solid var(--border);margin-left:6px;
+    }
+    @media(max-width:640px){.log-timeline{padding-left:0;border-left:none;margin-left:0;}}
+
+    /* ================================================================
+       GALLERY — ENHANCED
+    ================================================================ */
+    /* Masonry-style featured layout */
+    .gallery-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      grid-template-rows:auto;
+      gap:14px;
+    }
+    /* First card spans 2 cols × 2 rows — featured */
+    .photo-card:first-child{
+      grid-column:span 2;
+      grid-row:span 2;
+      aspect-ratio:unset;
+    }
+    /* 5th card spans 2 cols — wide panoramic */
+    .photo-card:nth-child(5){
+      grid-column:span 2;
+      aspect-ratio:16/9;
+    }
+    @media(max-width:1100px){
+      .gallery-grid{grid-template-columns:repeat(3,1fr);}
+      .photo-card:first-child{grid-column:span 2;grid-row:span 1;aspect-ratio:3/4;}
+      .photo-card:nth-child(5){grid-column:span 1;aspect-ratio:3/4;}
+    }
+    @media(max-width:720px){
+      .gallery-grid{grid-template-columns:repeat(2,1fr);}
+      .photo-card:first-child,.photo-card:nth-child(5){grid-column:span 1;grid-row:span 1;aspect-ratio:3/4;}
+    }
+    @media(max-width:480px){
+      .gallery-grid{grid-template-columns:1fr;}
+      .photo-card:first-child,.photo-card:nth-child(5){grid-column:span 1;}
+    }
+
+    /* Photo card enhancements */
+    .photo-card{
+      position:relative;overflow:hidden;border-radius:14px;
+      cursor:zoom-in;aspect-ratio:3/4;border:1px solid var(--border);
+      transition:transform .4s cubic-bezier(.17,.67,.52,.98),box-shadow .4s,border-color .3s;
+      background:var(--bg);
+    }
+    .photo-card img{
+      width:100%;height:100%;object-fit:cover;display:block;
+      transition:transform .6s cubic-bezier(.17,.67,.52,.98),filter .4s;
+      filter:saturate(0.85) brightness(0.92);
+    }
+    .photo-card:hover img{
+      transform:scale(1.07);
+      filter:saturate(1.1) brightness(1.0);
+    }
+    .photo-card:hover{
+      transform:translateY(-6px) scale(1.015);
+      box-shadow:0 28px 80px rgba(0,0,0,0.65),0 0 0 1px rgba(0,245,228,0.15);
+      border-color:rgba(0,245,228,0.2);
+    }
+    /* Gradient overlay — stronger at bottom */
+    .photo-card::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(to top,rgba(2,2,12,0.82) 0%,rgba(2,2,12,0.2) 40%,transparent 70%);
+      transition:opacity .3s;
+    }
+    .photo-card:hover::after{opacity:.7;}
+
+    /* Caption area */
+    .photo-caption{
+      position:absolute;bottom:0;left:0;right:0;z-index:2;
+      padding:22px 18px 18px;
+      transform:translateY(4px);transition:transform .3s;
+    }
+    .photo-card:hover .photo-caption{transform:translateY(0);}
+    .photo-caption strong{font-size:.9rem;display:block;margin-bottom:2px;}
+    .photo-caption small{font-family:'Syne Mono',monospace;font-size:.6rem;color:rgba(226,238,248,.5);}
+
+    /* Plate number badge */
+    .photo-badge{
+      position:absolute;top:12px;left:12px;z-index:3;
+      font-family:'Syne Mono',monospace;font-size:.55rem;letter-spacing:.15em;
+      text-transform:uppercase;padding:3px 7px;border-radius:4px;
+      background:rgba(2,2,12,.7);border:1px solid rgba(255,255,255,.1);
+      color:rgba(255,255,255,.5);backdrop-filter:blur(4px);
+    }
+    /* Featured badge on first card */
+    .photo-card:first-child .photo-badge{
+      color:var(--cyan);border-color:rgba(0,245,228,.25);
+      background:rgba(0,245,228,.08);
+    }
+
+    /* Gallery filter bar */
+    #gallery-filters{
+      display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;
+    }
+    .gf-btn{
+      font-family:'Syne Mono',monospace;font-size:.62rem;letter-spacing:.1em;
+      text-transform:uppercase;padding:6px 14px;border-radius:8px;cursor:pointer;
+      border:1px solid var(--border);background:var(--surface);color:var(--muted);
+      transition:all .2s;
+    }
+    .gf-btn:hover,.gf-btn.active{
+      border-color:rgba(0,245,228,.35);color:var(--cyan);
+      background:rgba(0,245,228,.06);
+    }
+
+    /* Enhanced lightbox */
+    .lb-overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.94);
+      backdrop-filter:blur(20px);display:flex;align-items:center;
+      justify-content:center;z-index:2000;padding:20px;
+    }
+    .lb-content{
+      width:min(1200px,98%);max-height:96vh;overflow:auto;
+      border-radius:20px;background:linear-gradient(180deg,#07090f,#0a0f18);
+      border:1px solid rgba(255,255,255,.06);
+      display:grid;grid-template-columns:1fr 320px;
+      box-shadow:0 40px 120px rgba(0,0,0,.8);
+    }
+    @media(max-width:720px){.lb-content{grid-template-columns:1fr;}}
+    .lb-image-panel{position:relative;overflow:hidden;border-radius:20px 0 0 20px;min-height:480px;}
+    .lb-image-panel img{width:100%;height:100%;object-fit:cover;display:block;}
+    @media(max-width:720px){.lb-image-panel{border-radius:20px 20px 0 0;min-height:260px;}}
+    .lb-info-panel{padding:32px 28px;display:flex;flex-direction:column;gap:20px;overflow-y:auto;}
+    .lb-nav-btn{
+      position:absolute;top:50%;transform:translateY(-50%);
+      width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.15);
+      background:rgba(0,0,0,.6);color:white;font-size:1rem;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      backdrop-filter:blur(8px);transition:all .2s;z-index:10;
+    }
+    .lb-nav-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    .lb-nav-prev{left:14px;} .lb-nav-next{right:14px;}
+    .lb-close-btn{
+      position:absolute;top:14px;right:14px;width:36px;height:36px;
+      border-radius:50%;border:1px solid rgba(255,255,255,.15);
+      background:rgba(0,0,0,.6);color:white;font-size:.9rem;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      backdrop-filter:blur(8px);transition:all .2s;z-index:10;
+    }
+    .lb-close-btn:hover{border-color:rgba(255,100,100,.4);color:#ff6464;}
+    .lb-exif{
+      display:grid;grid-template-columns:1fr 1fr;gap:8px;
+    }
+    .lb-exif-cell{
+      background:rgba(0,0,0,.25);border:1px solid var(--border);
+      border-radius:8px;padding:10px 12px;
+    }
+    .lb-exif-label{font-family:'Syne Mono',monospace;font-size:.54rem;
+      color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px;}
+    .lb-exif-val{font-family:'Syne Mono',monospace;font-size:.75rem;color:var(--text);}
+
   </style>
 </head>
 <body>
@@ -346,6 +732,7 @@
     <a href="#music">Studio</a>
     <a href="#portfolio">Gallery</a>
     <a href="#dimmap-section">Dimensions</a>
+    <a href="#logbook-section">Logbook</a>
   </div>
   <div class="nav-status">
     <div class="pulse-dot" id="navDot"></div>
@@ -393,7 +780,8 @@
         <div class="section-label" style="margin-bottom:14px;">Identity</div>
         <div class="section-title electric" style="font-size:2.3rem;margin-bottom:8px;">DOC911</div>
         <div class="mono" style="font-size:.82rem;color:var(--muted);letter-spacing:.1em;margin-bottom:18px;">Inter-Dimensional Traveller</div>
-        <p style="color:rgba(226,238,248,0.65);font-size:.88rem;line-height:1.75;">DOC911 navigates the seams between realities — collecting sound, light, and impressions from dimensions beyond naming.</p>
+        <p style="color:rgba(226,238,248,0.65);font-size:.88rem;line-height:1.75;">DOC911 is a traveller, producer, and sound-archivist operating between confirmed reality and the unmapped territories beyond. Trained by no institution, credentialed by no dimension — only by mileage and the scars of re-entry.</p>
+          <p style="color:rgba(226,238,248,0.45);font-size:.82rem;line-height:1.75;margin-top:10px;">Currently stationed at Threshold V. Last confirmed coordinates: 14.228°N / 29.441°Ψ / Δ-7.009.</p>
         <div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap;">
           <button id="logBtn" class="btn">Read Logbook</button>
           <button id="bio-toggle" class="btn">Expand Story</button>
@@ -404,7 +792,9 @@
       <div class="panel p-8">
         <div class="section-label" style="margin-bottom:14px;">Chronicles</div>
         <h2 class="section-title" style="margin-bottom:12px;">The Traveller's<br><span class="electric">Chronicle</span></h2>
-        <p style="color:rgba(226,238,248,0.6);font-size:.93rem;line-height:1.8;">Born between the seams of two dying constellations, DOC911 learned to map the intangible — to transmit signals from places with no coordinates, no gravity, no language.</p>
+        <p style="color:rgba(226,238,248,0.6);font-size:.93rem;line-height:1.8;">Born in the overlap of two dying constellations — one mapped, one not — DOC911 spent the first years of consciousness learning to translate the static between them into something resembling music.</p>
+        <p style="color:rgba(226,238,248,0.45);font-size:.86rem;line-height:1.8;margin-top:12px;">The instruments came later: found at markets with no fixed address, salvaged from dimensions that had already folded. Each one holds a residual frequency — a ghost of the last hand that touched it. DOC911 plays them all simultaneously.</p>
+        <p style="color:rgba(226,238,248,0.45);font-size:.86rem;line-height:1.8;margin-top:12px;">The logbook below is a living record. Not autobiography — more like sonar. Each entry a pulse sent out into the dark, tracked by what echoes back.</p>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <article class="node-card preview-trigger" tabindex="0" data-preview="0">
@@ -424,10 +814,168 @@
         </article>
       </div>
       <div id="expanded-bio" class="panel p-8 hidden" aria-hidden="true">
-        <h4 style="font-size:1.05rem;font-weight:700;margin-bottom:12px;">Expanded Logbook</h4>
-        <p style="color:rgba(226,238,248,0.6);font-size:.88rem;line-height:1.8;">The full chronicle of DOC911's inter-dimensional travels — each entry a memory plate, each a coordinate locked in photographic emulsion and sonic memory...</p>
+        <h4 style="font-size:1.05rem;font-weight:700;margin-bottom:4px;">Origin</h4>
+        <p style="color:rgba(226,238,248,0.6);font-size:.86rem;line-height:1.85;margin-top:8px;">DOC911 does not remember the crossing — only that it happened. A seam between two unstable dimensions, a pressure drop, and then the smell of something burning that had no chemical name. The first sound recorded on the other side was 55Hz, sustained, with a shimmer the instruments could not explain. It became the root note of everything since.</p>
+        <p style="color:rgba(226,238,248,0.45);font-size:.83rem;line-height:1.85;margin-top:10px;">The designation DOC911 came from a filing error in the Lumen District registry. The clerk entered it wrong and refused to correct it. By the time it mattered, it had already become true.</p>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- LOGBOOK -->
+<div class="sec-div"></div>
+<section id="logbook-section">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:48px;" class="fade-up">
+    <div>
+      <div class="section-label" style="margin-bottom:12px;">Field Notes</div>
+      <h2 class="section-title">The Logbook<br><span class="electric">Memory Plates</span></h2>
+    </div>
+    <div class="mono" style="font-size:.72rem;color:var(--muted);text-align:right;">Scroll to reveal<br>8 entries recovered</div>
+  </div>
+
+  <div class="log-timeline fade-up" style="transition-delay:.1s" id="logbook-entries">
+
+    <div class="log-entry" data-node="0">
+      <div class="log-dot"></div>
+      <div class="log-date">
+        Entry 001
+        <span class="log-coord">Coord: 14.2°N / 29.4°Ψ<br>Lumen District</span>
+      </div>
+      <div class="log-body">
+        <div class="log-title">The Market at the Edge of the Map</div>
+        <div class="log-text">
+          <p>Found it between a vent stack and a building that had no ground floor — only a second storey hovering three feet above the street, supported by nothing that I could identify. The market below it sold instruments with no names. I bought four. One played itself on the walk back to the transit terminal.</p>
+          <p>The vendor said the instruments hum because they were tuned inside a collapsing star. I have no way to verify this. What I can verify is that the lowest string of the one I call Number One resonates at exactly 55Hz in any atmospheric pressure — as if it already knows what tuning means and has decided not to change.</p>
+        </div>
+        <span class="log-tag cyan">● Nebula Market</span>
+        <span class="log-tag">Sound Archive</span>
+      </div>
+    </div>
+
+    <div class="log-entry" data-node="4">
+      <div class="log-dot"></div>
+      <div class="log-date">
+        Entry 002
+        <span class="log-coord">Coord: 08.7°S / 41.1°Ψ<br>Substratum IX</span>
+      </div>
+      <div class="log-body">
+        <div class="log-title">Pulse Cavern — Six Hours Underground</div>
+        <div class="log-text">
+          <p>Descended via a shaft cut through what the locals call compressed memory — sedimentary layers of discarded experience, dense as basalt. The cavern at the bottom is bioluminescent, but the light does not behave like light. It pulses in sequences. I spent six hours recording without understanding what I was recording.</p>
+          <p>Listened back at the surface. The pulses were prime numbers, expressed in light. I don't know what they are counting toward, or whether they have been counting since before there were people in this dimension to notice. I made a track from the rhythm. It felt like theft. I released it anyway.</p>
+        </div>
+        <span class="log-tag gold">● Substratum IX</span>
+        <span class="log-tag">Field Recording</span>
+        <span class="log-tag">Unreleased</span>
+      </div>
+    </div>
+
+    <div class="log-entry" data-node="1">
+      <div class="log-dot"></div>
+      <div class="log-date">
+        Entry 003
+        <span class="log-coord">Coord: 22.3°N / 17.8°Ψ<br>Dimension V.12</span>
+      </div>
+      <div class="log-body">
+        <div class="log-title">Glass Sea — The Tide That Sings Back</div>
+        <div class="log-text">
+          <p>The Glass Sea is not glass and is not a sea. It is a plain of crystallised resonance — solidified standing waves from a sonic event so large it froze the medium it was travelling through. You walk across it and it rings under your feet. Every step is a different pitch, depending on where you place your weight.</p>
+          <p>I spent three days crossing it. By the second day I had learned to walk in a way that produced chords. By the third I was playing something close to a melody. The photographs do not capture the sound. Nothing does. I tried anyway.</p>
+        </div>
+        <span class="log-tag cyan">● Dimension V.12</span>
+        <span class="log-tag">Photography</span>
+        <span class="log-tag purple">New Release</span>
+      </div>
+    </div>
+
+    <div class="log-entry" data-node="2">
+      <div class="log-dot"></div>
+      <div class="log-date">
+        Entry 004
+        <span class="log-coord">Coord: 31.9°N / 55.2°Ψ<br>Ruins of Oru</span>
+      </div>
+      <div class="log-body">
+        <div class="log-title">Ashfall Archives — What Survives</div>
+        <div class="log-text">
+          <p>Oru collapsed inward approximately 400 years before my arrival. What remains is not ruins exactly — more like an extended exhale. Buildings half-standing, half-dissolved into a fine grey ash that never fully settles. The light is amber, always, because the sun here has a different composition. Everything looks like late afternoon.</p>
+          <p>Found the photographic plates in a basement that shouldn't have survived. Someone had interleaved them with pages of poetry — the images and the words alternate, so you read the archive like a song. I could not translate the language but the rhythm was clear. I photographed the photographs. The plates crumbled when I touched them. I was the last person to see them. That is a weight I carry.</p>
+        </div>
+        <span class="log-tag gold">● Ruins of Oru</span>
+        <span class="log-tag">Photography</span>
+        <span class="log-tag">Archive</span>
+      </div>
+    </div>
+
+    <div class="log-entry" data-node="3">
+      <div class="log-dot"></div>
+      <div class="log-date">
+        Entry 005
+        <span class="log-coord">Coord: 44.1°N / 62.7°Ψ<br>Council of Mirrors</span>
+      </div>
+      <div class="log-body">
+        <div class="log-title">Mirror Spires — The Council That Never Speaks</div>
+        <div class="log-text">
+          <p>The spires are not made of mirror. They are made of a material that reflects not light but time — each surface shows a different moment in the history of whatever stands before it. I spent an hour watching myself arrive, leave, arrive again, at slightly different angles. The council, if there is one, has never been observed meeting. The spires may be the council.</p>
+          <p>I recorded fourteen minutes of audio standing between two of them. On playback, the recording contains a third voice that was not present in the room. Low, slow, speaking in a frequency that I can hear but cannot transcribe. I have been playing it back for months. I am beginning to understand the rhythm, if not the words.</p>
+        </div>
+        <span class="log-tag purple">● Council of Mirrors</span>
+        <span class="log-tag">Audio Anomaly</span>
+      </div>
+    </div>
+
+    <div class="log-entry" data-node="5">
+      <div class="log-dot"></div>
+      <div class="log-date">
+        Entry 006
+        <span class="log-coord">Coord: 09.4°N / 78.3°Ψ<br>Threshold V</span>
+      </div>
+      <div class="log-body">
+        <div class="log-title">Veil Crossing — Between Two Seasons</div>
+        <div class="log-text">
+          <p>Threshold V exists at the boundary of two atmospheric systems that should not coexist. On one side it is late autumn — cold, still, the smell of something decaying slowly and without regret. On the other side it is early spring, the specific green that has no name in most languages because it only lasts four days. I stood at the line between them for a long time.</p>
+          <p>The veil itself is visible as a shimmer — not heat, but something close to it. A thermal of possibility. Animals cross it freely. The locals say it is not a place to linger. I lingered. The photographs I took at the exact boundary show both seasons simultaneously, one on each half of the frame. I did not plan this. The camera understood something I didn't.</p>
+        </div>
+        <span class="log-tag cyan">● Threshold V</span>
+        <span class="log-tag">Photography</span>
+      </div>
+    </div>
+
+    <div class="log-entry" data-node="6">
+      <div class="log-dot"></div>
+      <div class="log-date">
+        Entry 007
+        <span class="log-coord">Coord: 52.8°N / 91.0°Ψ<br>Station 9-L</span>
+      </div>
+      <div class="log-body">
+        <div class="log-title">Starlit Overpass — Transit Above the Suspended City</div>
+        <div class="log-text">
+          <p>Station 9-L is a transit hub for dimensions that no longer exist as permanent destinations — they can only be accessed in motion, from the overpass, during the six seconds between departure and arrival. The locals call them ghost dimensions. The transit authority does not acknowledge them on the official maps but sells tickets to them from an unmarked window at the end of Platform 4.</p>
+          <p>I rode the overpass eleven times. On the eighth pass, for approximately two seconds, I was somewhere else entirely — a city made of light, populated by figures that moved like music sounds, without the separation that bodies usually impose. I did not have time to record it. I am recording it now, from memory, which is the least reliable instrument I own.</p>
+        </div>
+        <span class="log-tag purple">● Station 9-L</span>
+        <span class="log-tag">Transit Log</span>
+        <span class="log-tag gold">Ghost Dimension</span>
+      </div>
+    </div>
+
+    <div class="log-entry" data-node="7">
+      <div class="log-dot"></div>
+      <div class="log-date">
+        Entry 008
+        <span class="log-coord">Coord: 18.6°S / 33.9°Ψ<br>Void Market</span>
+      </div>
+      <div class="log-body">
+        <div class="log-title">Silent Bazaar — Trade in What Cannot Be Kept</div>
+        <div class="log-text">
+          <p>The Void Market trades in things that cannot be owned: specific qualities of light at a particular moment, the feeling of a word in a language you do not speak, the weight of a decision made by someone else. The stalls are made of what the vendors remember, assembled each morning and disassembled at dusk when the memory fades.</p>
+          <p>I bought a sound. I do not know how to describe the transaction except that I handed something over and received something back, and both parties seemed satisfied, and I walked away with a frequency in my chest that I had not had before. It is the root note of the track I am currently building. I do not know what I gave in exchange. I notice its absence but cannot name it.</p>
+        </div>
+        <span class="log-tag">● Void Market</span>
+        <span class="log-tag gold">Sound Purchase</span>
+        <span class="log-tag">Current Work</span>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -441,12 +989,12 @@
     </div>
     <div class="mono" style="font-size:.72rem;color:var(--muted);text-align:right;">Realtime Telemetry<br>Spatialized Audio</div>
   </div>
-  <div class="grid grid-cols-3 gap-6 items-start">
+  <div class="grid grid-cols-3 gap-6 items-start console-grid">
 
     <!-- Col 1: Lever + XY Pad -->
     <div class="panel p-6 fade-up" style="transition-delay:.1s">
       <div style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:18px;color:rgba(226,238,248,.7);">Manual Controls</div>
-      <div style="display:flex;align-items:flex-start;gap:20px;">
+      <div style="display:flex;align-items:flex-start;gap:20px;" class="lever-row">
         <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
           <div class="mono" style="font-size:.58rem;color:var(--muted);">STABILITY <span class="ctrl-meter" id="leverMeter"><span class="fill"></span></span></div>
           <div id="lever-track" class="lever-track">
@@ -554,7 +1102,7 @@
   </div>
   <div class="panel p-6 fade-up" style="transition-delay:.1s">
     <!-- TRANSPORT -->
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:26px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:26px;flex-wrap:wrap;" class="seq-transport-bar">
       <button id="seq-play" class="seq-transport-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>Play</button>
       <button id="seq-stop" class="seq-transport-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18"/></svg>Stop</button>
       <button id="seq-clear" class="seq-transport-btn">Clear</button>
@@ -584,7 +1132,7 @@
       </div>
     </div>
     <!-- STEP INDICATORS -->
-    <div style="display:grid;grid-template-columns:112px repeat(8,1fr);gap:8px;margin-bottom:5px;">
+    <div style="display:grid;grid-template-columns:112px repeat(8,1fr);gap:8px;margin-bottom:5px;" class="seq-ind-row">
       <div></div>
       <div class="seq-step-indicator" id="si-0"></div>
       <div class="seq-step-indicator" id="si-1"></div>
@@ -596,9 +1144,9 @@
       <div class="seq-step-indicator" id="si-7"></div>
     </div>
     <!-- GRID -->
-    <div id="seq-grid-wrap" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <div class="seq-grid-scroll"><div id="seq-grid-wrap" style="display:flex;flex-direction:column;gap:8px;"></div></div>
     <!-- VIZ ROW -->
-    <div style="display:grid;grid-template-columns:1fr 240px;gap:16px;margin-top:18px;align-items:start;">
+    <div style="display:grid;grid-template-columns:1fr 240px;gap:16px;margin-top:18px;align-items:start;" class="seq-bottom-row">
       <div class="seq-canvas-wrap"><canvas id="seq-viz" width="800" height="60"></canvas></div>
       <div style="display:flex;flex-direction:column;gap:8px;">
         <div class="tele-box"><div class="tele-label" style="color:var(--cyan);">Step</div><div id="seq-step-display" class="tele-value">&#8212;</div></div>
@@ -663,6 +1211,13 @@
   <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:44px;" class="fade-up">
     <div><div class="section-label" style="margin-bottom:12px;">Memory Plates</div><h2 class="section-title">Photography<br><span class="electric">Places I've Traveled</span></h2></div>
     <div class="mono" style="font-size:.72rem;color:var(--muted);text-align:right;">Click to open<br>Buy prints • Download</div>
+  </div>
+  <div id="gallery-filters" class="fade-up" style="transition-delay:.05s;">
+    <button class="gf-btn active" data-filter="all">All Plates</button>
+    <button class="gf-btn" data-filter="Sound Archive">Sound</button>
+    <button class="gf-btn" data-filter="Photography">Photography</button>
+    <button class="gf-btn" data-filter="Field Recording">Field</button>
+    <button class="gf-btn" data-filter="Archive">Archive</button>
   </div>
   <div id="gallery" class="gallery-grid fade-up" style="transition-delay:.1s;" role="list"></div>
 </section>
@@ -755,11 +1310,136 @@
    The "Skip →" button short-circuits directly to endBoot().
    ============================================================ */
 (function bootSeq(){
-  const bootEl=document.getElementById('boot');
-  const term=document.getElementById('boot-term');
-  const caretEl=document.getElementById('boot-caret');
-  const skipBtn=document.getElementById('boot-skip');
-  const LINES=[
+  const bootEl  = document.getElementById('boot');
+  const term    = document.getElementById('boot-term');
+  const caretEl = document.getElementById('boot-caret');
+  const skipBtn = document.getElementById('boot-skip');
+
+  /* ── Boot-phase audio context ─────────────────────────────────────
+     Separate from the main actx so audio fires immediately on the
+     first user gesture (click / keydown / touchstart) without waiting
+     for the main engine to initialise.
+  ─────────────────────────────────────────────────────────────────── */
+  const BAC = new (window.AudioContext || window.webkitAudioContext)();
+  const bMaster = BAC.createGain(); bMaster.gain.value = 0.55;
+  bMaster.connect(BAC.destination);
+
+  // ── Startup hum: low drone that fades in at boot start ────────────
+  let humOsc = null, humGain = null;
+  function startHum(){
+    humOsc  = BAC.createOscillator();
+    humGain = BAC.createGain();
+    const filt = BAC.createBiquadFilter();
+    filt.type = 'lowpass'; filt.frequency.value = 320;
+    humOsc.type = 'sawtooth'; humOsc.frequency.value = 55;
+    humOsc.connect(filt); filt.connect(humGain); humGain.connect(bMaster);
+    humGain.gain.setValueAtTime(0.001, BAC.currentTime);
+    humGain.gain.exponentialRampToValueAtTime(0.18, BAC.currentTime + 1.4);
+    humOsc.start();
+    // Sub oscillator for body
+    const sub = BAC.createOscillator();
+    const subG = BAC.createGain(); subG.gain.value = 0.08;
+    sub.type = 'sine'; sub.frequency.value = 27.5;
+    sub.connect(subG); subG.connect(bMaster);
+    sub.start();
+    humOsc._sub = sub; humOsc._subG = subG;
+  }
+
+  function stopHum(when){
+    if(!humOsc) return;
+    humGain.gain.setTargetAtTime(0.001, when, 0.3);
+    try{ humOsc._subG.gain.setTargetAtTime(0.001, when, 0.3); }catch(e){}
+    setTimeout(()=>{ try{humOsc.stop();}catch(e){} try{humOsc._sub.stop();}catch(e){} }, (when - BAC.currentTime)*1000 + 1200);
+  }
+
+  // ── Keyclick: short noise burst per character ─────────────────────
+  // Two flavours: soft (normal chars) and hard (punctuation / special)
+  function keyClick(hard){
+    const dur  = hard ? 0.018 : 0.012;
+    const freq = hard ? 1800 + Math.random()*800 : 1100 + Math.random()*600;
+    const vol  = hard ? 0.22  : 0.12 + Math.random()*0.06;
+    const o = BAC.createOscillator();
+    const n = BAC.createOscillator(); // noise-like second osc for character
+    const g = BAC.createGain();
+    const filt = BAC.createBiquadFilter(); filt.type='highpass'; filt.frequency.value=900;
+    o.type='square'; o.frequency.value=freq;
+    n.type='sawtooth'; n.frequency.value=freq*1.5 + Math.random()*200;
+    g.gain.setValueAtTime(vol, BAC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, BAC.currentTime + dur);
+    o.connect(filt); n.connect(filt); filt.connect(g); g.connect(bMaster);
+    o.start(); n.start(); o.stop(BAC.currentTime+dur+0.002); n.stop(BAC.currentTime+dur+0.002);
+  }
+
+  // ── Line chime: short pitched tone at end of each line ───────────
+  // Pitch rises slightly through the boot sequence for a 'loading' feel
+  function lineChime(lineIndex, lineClass){
+    const now = BAC.currentTime;
+    if(lineClass === 'bl-warn'){
+      // WARN: buzzy descending tone
+      const o = BAC.createOscillator(); o.type='sawtooth';
+      const g = BAC.createGain();
+      const filt=BAC.createBiquadFilter(); filt.type='bandpass'; filt.frequency.value=420; filt.Q.value=4;
+      o.frequency.setValueAtTime(380, now);
+      o.frequency.exponentialRampToValueAtTime(200, now+0.22);
+      g.gain.setValueAtTime(0.18, now);
+      g.gain.exponentialRampToValueAtTime(0.0001, now+0.25);
+      o.connect(filt); filt.connect(g); g.connect(bMaster);
+      o.start(now); o.stop(now+0.27);
+      // second dissonant tone
+      const o2=BAC.createOscillator(); o2.type='square'; o2.frequency.value=640;
+      const g2=BAC.createGain(); g2.gain.setValueAtTime(0.06,now); g2.gain.exponentialRampToValueAtTime(0.0001,now+0.18);
+      o2.connect(g2); g2.connect(bMaster); o2.start(now); o2.stop(now+0.2);
+    } else if(lineClass === 'bl-bright'){
+      // BRIGHT: clean rising two-note fanfare
+      [0, 0.08].forEach((delay, i) => {
+        const pitches = [660, 880];
+        const o = BAC.createOscillator(); o.type='sine';
+        const g = BAC.createGain();
+        o.frequency.value = pitches[i];
+        g.gain.setValueAtTime(0.001, now+delay);
+        g.gain.linearRampToValueAtTime(0.18, now+delay+0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, now+delay+0.28);
+        o.connect(g); g.connect(bMaster);
+        o.start(now+delay); o.stop(now+delay+0.3);
+      });
+    } else {
+      // OK: soft high-pitched tick at the end of a line
+      const basePitch = 1400 + lineIndex * 18; // slowly rises
+      const o = BAC.createOscillator(); o.type='sine';
+      const g = BAC.createGain();
+      o.frequency.value = Math.min(basePitch, 2200);
+      g.gain.setValueAtTime(0.06, now);
+      g.gain.exponentialRampToValueAtTime(0.0001, now+0.09);
+      o.connect(g); g.connect(bMaster);
+      o.start(now); o.stop(now+0.1);
+    }
+  }
+
+  // ── Final sweep: sweeping filter noise burst into silence ─────────
+  function finalSweep(){
+    const now = BAC.currentTime;
+    const bufLen = Math.floor(BAC.sampleRate * 1.2);
+    const buf = BAC.createBuffer(1, bufLen, BAC.sampleRate);
+    const data = buf.getChannelData(0);
+    for(let i=0; i<bufLen; i++) data[i] = (Math.random()*2-1);
+    const src  = BAC.createBufferSource(); src.buffer = buf;
+    const filt = BAC.createBiquadFilter(); filt.type='bandpass'; filt.Q.value=1.2;
+    const g    = BAC.createGain();
+    filt.frequency.setValueAtTime(200, now);
+    filt.frequency.exponentialRampToValueAtTime(4000, now+1.0);
+    g.gain.setValueAtTime(0.001, now);
+    g.gain.linearRampToValueAtTime(0.3,  now+0.06);
+    g.gain.exponentialRampToValueAtTime(0.0001, now+1.1);
+    src.connect(filt); filt.connect(g); g.connect(bMaster);
+    src.start(now); src.stop(now+1.2);
+    stopHum(now + 0.4);
+  }
+
+  /* ── Typewriter engine ────────────────────────────────────────────
+     Same lines as before — but now each character fires keyClick()
+     and each line-end fires lineChime().
+  ─────────────────────────────────────────────────────────────────── */
+  const LINES = [
     {t:'DOC911 COMMAND SYSTEM v5.0 — FINAL BUILD',cls:'bl-bright'},
     {t:'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',cls:'bl-ok'},
     {t:'Bootstrapping dimensional core…',cls:''},
@@ -779,26 +1459,76 @@
     {t:'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',cls:'bl-ok'},
     {t:'ALL SYSTEMS NOMINAL. INITIATING INTERFACE…',cls:'bl-bright'},
   ];
-  let li=0,ci=0,curDiv=null;
+
+  const HARD_CHARS = new Set('[]━.:—×↔\u221e/!');
+  let li=0, ci=0, curDiv=null;
+  let audioStarted = false;
+
+  function ensureAudio(){
+    if(audioStarted) return;
+    audioStarted = true;
+    if(BAC.state==='suspended') BAC.resume();
+    startHum();
+  }
+
   function typeChar(){
-    if(li>=LINES.length){setTimeout(endBoot,600);return;}
-    if(ci===0){curDiv=document.createElement('div');if(LINES[li].cls)curDiv.className=LINES[li].cls;term.insertBefore(curDiv,caretEl);}
-    if(ci<LINES[li].t.length){curDiv.textContent=LINES[li].t.substring(0,ci+1);ci++;setTimeout(typeChar,14+Math.random()*10);}
-    else{li++;ci=0;setTimeout(typeChar,li%4===0?160:50);}
+    ensureAudio();
+    if(li >= LINES.length){ setTimeout(endBoot, 700); return; }
+
+    if(ci === 0){
+      curDiv = document.createElement('div');
+      if(LINES[li].cls) curDiv.className = LINES[li].cls;
+      term.insertBefore(curDiv, caretEl);
+    }
+
+    if(ci < LINES[li].t.length){
+      const ch = LINES[li].t[ci];
+      curDiv.textContent = LINES[li].t.substring(0, ci+1);
+      // Play keyclick — hard for special chars, soft for normal
+      if(ch !== ' ') keyClick(HARD_CHARS.has(ch));
+      ci++;
+      setTimeout(typeChar, 13 + Math.random()*11);
+    } else {
+      // End of line
+      lineChime(li, LINES[li].cls || '');
+      li++; ci = 0;
+      const pause = li % 4 === 0 ? 180 : 55;
+      setTimeout(typeChar, pause);
+    }
   }
+
   function endBoot(){
-    gsap.to(bootEl,{opacity:0,duration:.6,ease:'power2.in',onComplete:()=>bootEl.remove()});
-    setTimeout(revealHero,200);
+    finalSweep();
+    gsap.to(bootEl,{opacity:0,duration:.7,ease:'power2.in',delay:0.5,onComplete:()=>bootEl.remove()});
+    setTimeout(revealHero, 800);
   }
+
   function revealHero(){
     gsap.timeline()
       .to('#main-brand',{opacity:1,y:-20,duration:1.4,ease:'power3.out'})
       .to('#sub-brand',{opacity:1,y:-8,duration:1.0,ease:'power2.out'},'-=1.0')
       .to('#hero-cta',{opacity:1,duration:.8,ease:'power2.out'},'-=.6');
-    document.querySelectorAll('.fade-up').forEach((el,i)=>{setTimeout(()=>el.classList.add('visible'),i*60+200);});
+    document.querySelectorAll('.fade-up').forEach((el,i)=>{
+      setTimeout(()=>el.classList.add('visible'), i*60+200);
+    });
   }
-  skipBtn.addEventListener('click',endBoot);
-  setTimeout(typeChar,300);
+
+  // Start on first interaction (browser autoplay policy)
+  function onFirstInteraction(){
+    document.removeEventListener('click',    onFirstInteraction);
+    document.removeEventListener('keydown',  onFirstInteraction);
+    document.removeEventListener('touchstart',onFirstInteraction);
+    ensureAudio();
+  }
+  document.addEventListener('click',     onFirstInteraction);
+  document.addEventListener('keydown',   onFirstInteraction);
+  document.addEventListener('touchstart',onFirstInteraction, {passive:true});
+
+  skipBtn.addEventListener('click',     endBoot);
+  skipBtn.addEventListener('touchstart',endBoot, {passive:true});
+
+  // Start typing after a short pause regardless — audio kicks in on first tap/click
+  setTimeout(typeChar, 300);
 })();
 
 /* ============================================================
@@ -1419,7 +2149,16 @@ function vib(p=10){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
 (function(){
   let drag=false;const track=document.getElementById('lever-track');const knob=document.getElementById('lever-knob');
   knob.addEventListener('pointerdown',e=>{if(actx.state==='suspended')actx.resume();knob.setPointerCapture(e.pointerId);drag=true;AUD.ui('click');vib(8);});
-  window.addEventListener('pointermove',e=>{if(!drag)return;const r=track.getBoundingClientRect();const v=Math.round(Math.max(0,Math.min(1,(r.bottom-e.clientY)/r.height))*100);setLV(v);AUD.ui('lever',{value:v});});
+  window.addEventListener('pointermove',e=>{
+    if(!drag)return;
+    const r=track.getBoundingClientRect();
+    // On mobile the track is horizontal; on desktop it's vertical
+    const isMobile=window.innerWidth<=768;
+    const v=isMobile
+      ? Math.round(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*100)
+      : Math.round(Math.max(0,Math.min(1,(r.bottom-e.clientY)/r.height))*100);
+    setLV(v);AUD.ui('lever',{value:v});
+  });
   window.addEventListener('pointerup',()=>{if(!drag)return;drag=false;const c=Number(freqInput.value);gsap.to({v:c},{v:Math.round(Math.max(0,Math.min(100,c+(Math.random()*8-4)))),duration:.5,onUpdate:function(){setLV(Math.round(this.targets()[0].v));}});vib([10]);});
   knob.addEventListener('keydown',e=>{let v=Number(freqInput.value);if(e.key==='ArrowUp'||e.key==='ArrowRight')v=Math.min(100,v+2);if(e.key==='ArrowDown'||e.key==='ArrowLeft')v=Math.max(0,v-2);setLV(v);AUD.ui('lever',{value:v});});
   freqInput.addEventListener('input',e=>setLV(Number(e.target.value)));
@@ -1485,6 +2224,12 @@ document.getElementById('logBtn').addEventListener('click',()=>{AUD.ui('click',{
   const ctx=canvas.getContext('2d');
   const readout=document.getElementById('xy-readout');
   let xyX=50,xyY=50,active=false,trails=[];
+  // Resize XY pad canvas to fill its container on mobile
+  function resizeXY(){
+    const w=canvas.parentElement.clientWidth||300;
+    canvas.width=w; canvas.height=Math.max(120,Math.round(w*0.45));
+  }
+  resizeXY(); window.addEventListener('resize',resizeXY);
 
   function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -1637,6 +2382,13 @@ function rmsOf(an){const b=new Uint8Array(an.fftSize);try{an.getByteTimeDomainDa
   const plist=[];let ci=0,src=null,sPan=null,playing=false,sTime=0,pausedAt=0,dur=0,raf=null;
   function fmt(s){if(!isFinite(s))return'0:00';s=Math.max(0,Math.floor(s));return`${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;}
   async function gen(duration=18,type='pad',seed=1){const sr=actx.sampleRate,len=Math.floor(duration*sr),buf=actx.createBuffer(1,len,sr),ch=buf.getChannelData(0);let x=(seed*9301+49297)%233280;function rnd(){x=(x*1664525+1013904223)%4294967296;return(x/4294967296)*2-1;}for(let i=0;i<len;i++){const t=i/sr;if(type==='pad'){ch[i]=(Math.sin(2*Math.PI*80*t*(1+.002*Math.sin(t*.05)))*.6+.6*Math.sin(2*Math.PI*55*t*(1+.001*Math.cos(t*.03)))*.35+.2*Math.sin(2*Math.PI*220*t*(1+.0015*Math.sin(t*.11)))*.15)*Math.exp(-.00045*i)*(.6+.4*rnd());}else if(type==='plucked'){let v=0;if((i%Math.floor(sr*.25))<10)v+=rnd()*.9;v+=.4*Math.sin(2*Math.PI*440*t)*Math.exp(-t*2);ch[i]=v*.6*(.8+.2*rnd());}else ch[i]=rnd()*.12*Math.exp(-.0002*i);}return buf;}
+  // Resize wave preview canvas to its container width
+  function resizeWave(){
+    const w=waveEl.parentElement.clientWidth||1024;
+    waveEl.width=w*2; // 2× for retina feel
+  }
+  resizeWave(); window.addEventListener('resize',resizeWave);
+
   async function prep(){const tm=[{title:'Lumen Wake — Pad',dur:24,type:'pad',notes:'Dark bed with airy shimmer and reverb wash.'},{title:'Glass Tide — Arp',dur:18,type:'plucked',notes:'Pluck textures with automated stereo panning.'},{title:'Ashfall Drift — Ambient',dur:22,type:'noise',notes:'Dusty ambient; granular preview recommended.'}];nowTitle.textContent='Synthesizing…';for(let i=0;i<tm.length;i++){const b=await gen(tm[i].dur,tm[i].type,i+7);plist.push({...tm[i],buffer:b});}buildUI();loadTrack(0,false);}
   function buildUI(){plistEl.innerHTML='';plist.forEach((t,i)=>{const d=document.createElement('div');d.className='playlist-item'+(i===ci?' active':'');d.innerHTML=`<div><div style="font-size:.85rem;font-weight:600;">${t.title}</div><div class="mono" style="font-size:.62rem;color:var(--muted);">${t.dur}s</div></div><button data-i="${i}" class="btn play-btn sel-t" style="width:34px;height:34px;font-size:.72rem;">▶</button>`;plistEl.appendChild(d);});document.querySelectorAll('.sel-t').forEach(b=>b.addEventListener('click',()=>{if(actx.state==='suspended')actx.resume();AUD.ui('click',{pitch:1200});loadTrack(Number(b.dataset.i),true);}));}
   function drawWave(buf){const c=waveEl.getContext('2d'),w=waveEl.width,h=waveEl.height;c.clearRect(0,0,w,h);c.fillStyle='rgba(0,0,0,.2)';c.fillRect(0,0,w,h);c.strokeStyle='rgba(0,245,228,.75)';c.lineWidth=1;c.beginPath();const da=buf.getChannelData(0),st=Math.max(1,Math.floor(da.length/w));for(let i=0;i<w;i++){let mn=1,mx=-1;for(let j=0;j<st;j++){const v=da[i*st+j];if(v<mn)mn=v;if(v>mx)mx=v;}c.moveTo(i,(1-(mn+1)/2)*h);c.lineTo(i,(1-(mx+1)/2)*h);}c.stroke();}
@@ -1678,29 +2430,425 @@ function rmsOf(an){const b=new Uint8Array(an.fftSize);try{an.getByteTimeDomainDa
    • "Download" is a direct <a download> link to the src data URI.
    ============================================================ */
 (function initGallery(){
+  /* ── Item metadata ───────────────────────────────────────────── */
   const ITEMS=[
-    {title:'Lumen Market Plaza',location:'Nebula Market — Lumen District',caption:'Microglass instruments under neon canopies.'},
-    {title:'Glass Sea Horizon',location:'Dimension V.12',caption:'Light-songs refracting on crystalline tide lines.'},
-    {title:'Ashfall Plate',location:'Ruins of Oru',caption:'Photographic plate with interleaved poetry.'},
-    {title:'Mirror Spires',location:'Council of Mirrors',caption:'Spire reflections folding into impossible geometry.'},
-    {title:'Pulse Cavern',location:'Substratum IX',caption:'Bioluminescent pulses captured as long exposures.'},
-    {title:'Veil Crossing',location:'Threshold V',caption:'A thin veil between two seasons in different realities.'},
-    {title:'Starlit Overpass',location:'Station 9-L',caption:'Transit over the city of suspended lights.'},
-    {title:'Silent Bazaar',location:'Void Market',caption:'Trade stalls made of memory and dust.'}
+    {title:'Lumen Market Plaza',     location:'Nebula Market — Lumen District', caption:'Self-playing instruments beneath hovering architecture.',          tags:['Sound Archive'],      exif:{dim:'V.01', time:'02:14 LOCAL', exp:'∞',    note:'Plate 1 — Featured'}},
+    {title:'Glass Sea Horizon',      location:'Dimension V.12',                 caption:'Crystallised standing waves at the edge of the crossing.',        tags:['Photography'],        exif:{dim:'V.12', time:'DUSK',      exp:'4s',    note:'Long exposure'}},
+    {title:'Ashfall Plate',          location:'Ruins of Oru',                   caption:'Recovered photographic plates interleaved with untranslatable poetry.',tags:['Photography','Archive'], exif:{dim:'ORU',  time:'AMBER',   exp:'1/60s', note:'Original emulsion'}},
+    {title:'Mirror Spires',          location:'Council of Mirrors',             caption:'Reflections of time, not light. The third voice is in here somewhere.',tags:['Photography'],   exif:{dim:'M-4',  time:'LOOP',    exp:'0s',    note:'No shutter needed'}},
+    {title:'Pulse Cavern Panorama',  location:'Substratum IX',                  caption:'Bioluminescent prime-number pulses. Six hours underground.',       tags:['Field Recording'],    exif:{dim:'IX',   time:'NONE',    exp:'6hr',   note:'Wide panoramic'}},
+    {title:'Veil Crossing',          location:'Threshold V',                    caption:'Both seasons in one frame. The camera understood before I did.',   tags:['Photography'],        exif:{dim:'V',    time:'BETWEEN', exp:'1/30s', note:'Boundary shot'}},
+    {title:'Starlit Overpass',       location:'Station 9-L',                    caption:'Transit above the suspended city. Eleven passes, one glimpse.',    tags:['Photography'],        exif:{dim:'9-L',  time:'TRANSIT', exp:'1s',    note:'Ghost dim. visible'}},
+    {title:'Silent Bazaar',          location:'Void Market',                    caption:'Stalls made of memory. I bought a sound. Something left with it.', tags:['Sound Archive'],      exif:{dim:'VOID', time:'DUSK',    exp:'∞',     note:'Trade in progress'}},
   ];
-  const PALETTES=[['#00f5e4','#c45bff'],['#60a5fa','#a78bfa'],['#34d399','#22d3ee'],['#f472b6','#7c3aed'],['#fde68a','#fdba74'],['#60a5fa','#34d399'],['#a78bfa','#22d3ee'],['#f472b6','#fde68a']];
-  function mkSVG(n){const[c1,c2]=PALETTES[n%8];return'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='600' height='800' viewBox='0 0 600 800'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='${c1}' stop-opacity='.6'/><stop offset='1' stop-color='${c2}' stop-opacity='.4'/></linearGradient><radialGradient id='r' cx='50%' cy='40%' r='60%'><stop offset='0' stop-color='white' stop-opacity='.07'/><stop offset='1' stop-color='black' stop-opacity='.3'/></radialGradient></defs><rect width='100%' height='100%' fill='#02020c'/><rect width='100%' height='100%' fill='url(#g)'/><rect width='100%' height='100%' fill='url(#r)'/><text x='30' y='760' fill='rgba(255,255,255,0.35)' font-family='monospace' font-size='12' letter-spacing='3'>PLATE ${n+1}</text></svg>`);}
-  const srcs=ITEMS.map((_,i)=>mkSVG(i));
-  const root=document.getElementById('gallery');
-  function render(){root.innerHTML='';ITEMS.forEach((it,i)=>{const c=document.createElement('div');c.className='photo-card';c.tabIndex=0;c.setAttribute('role','listitem');const img=document.createElement('img');img.src=srcs[i];img.alt=`${it.title} — ${it.location}`;img.loading='lazy';const cap=document.createElement('div');cap.className='photo-caption mono';cap.innerHTML=`<strong>${it.title}</strong><small>${it.location}</small>`;c.appendChild(img);c.appendChild(cap);root.appendChild(c);c.addEventListener('click',()=>openLB(i));c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openLB(i);}});});}
-  render();
-  document.getElementById('uploadImagesBtn').addEventListener('click',()=>document.getElementById('imageUploader').click());
-  document.getElementById('imageUploader').addEventListener('change',e=>{Array.from(e.target.files).slice(0,ITEMS.length).forEach((f,i)=>{const r=new FileReader();r.onload=ev=>{srcs[i]=ev.target.result;render();logEv(`Replaced plate ${i+1}`);};r.readAsDataURL(f);});e.target.value='';});
 
-  const lbRoot=document.getElementById('lightboxRoot');let lbOpen=false,lbIdx=0,lbOv=null;
-  function openLB(i){if(lbOpen)return;lbIdx=i;const it=ITEMS[i];const ov=document.createElement('div');ov.className='lb-overlay';const cnt=document.createElement('div');cnt.className='lb-content';cnt.innerHTML=`<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;"><div><div class="mono" style="font-size:.6rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;">Memory Plate</div><h3 style="font-family:'Unbounded',sans-serif;font-size:1.35rem;font-weight:900;margin-top:4px;">${it.title}</h3><div class="mono" style="font-size:.68rem;color:var(--muted);margin-top:3px;">${it.location}</div></div><div style="display:flex;gap:7px;flex-shrink:0;"><button id="lbPrev" class="btn" style="padding:9px 13px;">◀</button><button id="lbNext" class="btn" style="padding:9px 13px;">▶</button><button id="lbClose" class="btn" style="padding:9px 13px;">✕</button></div></div><img src="${srcs[i]}" alt="${it.title}" style="width:100%;height:auto;border-radius:10px;display:block;"/><p style="margin-top:14px;color:rgba(226,238,248,0.6);font-size:.86rem;line-height:1.7;">${it.caption}</p><div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end;"><button id="lbBuy" class="btn btn-primary">Buy Print</button><a class="btn" href="${srcs[i]}" download="${it.title.replace(/\s+/g,'_')}.svg">Download</a></div>`;ov.appendChild(cnt);lbRoot.appendChild(ov);lbOpen=true;lbOv=ov;gsap.fromTo(ov,{opacity:0},{opacity:1,duration:.15,onStart:()=>AUD.ui('click')});cnt.querySelector('#lbClose').addEventListener('click',closeLB);cnt.querySelector('#lbPrev').addEventListener('click',()=>navLB(-1));cnt.querySelector('#lbNext').addEventListener('click',()=>navLB(1));cnt.querySelector('#lbBuy').addEventListener('click',()=>openCheckout({title:it.title,amount:49,image:srcs[i]}));ov.addEventListener('click',e=>{if(e.target===ov)closeLB();});}
-  function closeLB(){if(!lbOpen)return;gsap.to(lbOv,{opacity:0,duration:.12,onComplete:()=>{lbOv.remove();lbOpen=false;lbOv=null;}});}
-  function navLB(d){const nx=(lbIdx+d+ITEMS.length)%ITEMS.length;if(lbOv)gsap.to(lbOv,{opacity:0,duration:.1,onComplete:()=>{lbOv.remove();lbOpen=false;lbOv=null;openLB(nx);}});else openLB(nx);}
+  /* ── Rich SVG plate generator ────────────────────────────────── */
+  function mkSVG(n){
+    const scenes=[
+      // 0: Lumen Market — neon market with hovering architecture
+      `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='800' viewBox='0 0 600 800'>
+        <defs>
+          <radialGradient id='sky0' cx='50%' cy='30%' r='70%'><stop offset='0%' stop-color='#0a0520'/><stop offset='100%' stop-color='#02020c'/></radialGradient>
+          <radialGradient id='glow0' cx='50%' cy='50%' r='50%'><stop offset='0%' stop-color='#00f5e4' stop-opacity='.25'/><stop offset='100%' stop-color='#00f5e4' stop-opacity='0'/></radialGradient>
+        </defs>
+        <rect width='600' height='800' fill='url(#sky0)'/>
+        <!-- Stars -->
+        ${Array.from({length:60},(_,i)=>`<circle cx='${30+i*9.5}' cy='${20+Math.sin(i*1.7)*180}' r='${i%5===0?1.5:.5}' fill='white' opacity='${.2+.6*(i%3)/3}'/>`).join('')}
+        <!-- Ground fog -->
+        <ellipse cx='300' cy='780' rx='340' ry='60' fill='#00f5e4' opacity='.04'/>
+        <!-- Market stalls -->
+        <rect x='30' y='560' width='80' height='120' rx='4' fill='#0d1a2e' stroke='#00f5e4' stroke-width='.5' stroke-opacity='.4'/>
+        <rect x='130' y='540' width='90' height='140' rx='4' fill='#0d1a2e' stroke='#c45bff' stroke-width='.5' stroke-opacity='.4'/>
+        <rect x='240' y='550' width='100' height='130' rx='4' fill='#0d1a2e' stroke='#00f5e4' stroke-width='.5' stroke-opacity='.3'/>
+        <rect x='360' y='535' width='85' height='145' rx='4' fill='#0d1a2e' stroke='#f0b429' stroke-width='.5' stroke-opacity='.4'/>
+        <rect x='460' y='555' width='110' height='125' rx='4' fill='#0d1a2e' stroke='#c45bff' stroke-width='.5' stroke-opacity='.3'/>
+        <!-- Awnings -->
+        <polygon points='20,560 120,560 100,535 40,535' fill='#00f5e4' opacity='.12'/>
+        <polygon points='120,540 230,540 215,515 135,515' fill='#c45bff' opacity='.1'/>
+        <polygon points='230,550 350,550 335,525 245,525' fill='#00f5e4' opacity='.08'/>
+        <!-- Hovering second floor (no support) -->
+        <rect x='80' y='380' width='440' height='100' rx='6' fill='#0d1530' stroke='rgba(255,255,255,.08)' stroke-width='1'/>
+        <rect x='80' y='378' width='440' height='4' fill='#00f5e4' opacity='.3'/>
+        <!-- Windows lit -->
+        ${Array.from({length:8},(_,i)=>`<rect x='${100+i*52}' y='398' width='28' height='18' rx='2' fill='${["#00f5e4","#c45bff","#f0b429","#00f5e4"][i%4]}' opacity='${.12+.1*(i%3)}'/>`)
+.join('')}
+        <!-- Glow under hovering floor -->
+        <ellipse cx='300' cy='485' rx='200' ry='12' fill='#00f5e4' opacity='.05'/>
+        <!-- Neon sign -->
+        <text x='300' y='270' text-anchor='middle' font-family='monospace' font-size='14' fill='#00f5e4' opacity='.8' letter-spacing='6'>LUMEN DISTRICT</text>
+        <text x='300' y='290' text-anchor='middle' font-family='monospace' font-size='9' fill='#c45bff' opacity='.6' letter-spacing='3'>MARKET ∞ OPEN</text>
+        <!-- Instrument silhouette -->
+        <ellipse cx='180' cy='630' rx='18' ry='22' fill='none' stroke='#00f5e4' stroke-width='1' opacity='.5'/>
+        <line x1='180' y1='608' x2='180' y2='560' stroke='#00f5e4' stroke-width='1' opacity='.4'/>
+        <!-- Ground reflection -->
+        <rect x='0' y='690' width='600' height='110' fill='url(#sky0)' opacity='.6'/>
+        <text x='24' y='778' font-family='monospace' font-size='10' fill='rgba(0,245,228,.3)' letter-spacing='3'>PLATE 01</text>
+      </svg>`,
+
+      // 1: Glass Sea — frozen wave landscape
+      `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='800' viewBox='0 0 600 800'>
+        <defs>
+          <linearGradient id='sky1' x1='0' y1='0' x2='0' y2='1'><stop offset='0%' stop-color='#030815'/><stop offset='60%' stop-color='#07102a'/><stop offset='100%' stop-color='#0a1f3a'/></linearGradient>
+          <linearGradient id='sea1' x1='0' y1='0' x2='0' y2='1'><stop offset='0%' stop-color='#60a5fa' stop-opacity='.25'/><stop offset='100%' stop-color='#a78bfa' stop-opacity='.12'/></linearGradient>
+        </defs>
+        <rect width='600' height='800' fill='url(#sky1)'/>
+        <!-- Moon -->
+        <circle cx='480' cy='80' r='38' fill='#c8e4ff' opacity='.12'/>
+        <circle cx='480' cy='80' r='32' fill='#ddf' opacity='.08'/>
+        <!-- Stars scatter -->
+        ${Array.from({length:80},(_,i)=>`<circle cx='${Math.sin(i*2.3)*290+300}' cy='${Math.cos(i*1.7)*180+160}' r='${i%7===0?1.2:.4}' fill='white' opacity='${.15+.5*(i%4)/4}'/>`).join('')}
+        <!-- Horizon glow -->
+        <ellipse cx='300' cy='480' rx='500' ry='40' fill='#60a5fa' opacity='.06'/>
+        <!-- Glass sea surface — crystalline wave shapes -->
+        ${Array.from({length:12},(_,i)=>{
+          const y=440+i*22; const amp=30-i*2;
+          const pts=Array.from({length:13},(_,j)=>`${j*50},${y+Math.sin(j*.9+i*.4)*amp}`).join(' ');
+          return `<polyline points='${pts}' fill='none' stroke='#60a5fa' stroke-width='${i<3?.8:.4}' opacity='${.5-i*.035}'/>`;
+        }).join('')}
+        <!-- Faceted crystal shapes on surface -->
+        ${Array.from({length:14},(_,i)=>{
+          const x=20+i*42, y=460+Math.sin(i*.8)*15;
+          return `<polygon points='${x},${y-18} ${x+12},${y} ${x},${y+8} ${x-12},${y}' fill='#a78bfa' opacity='${.06+.06*(i%3)}'/>
+                  <polygon points='${x},${y-18} ${x+12},${y} ${x},${y+8} ${x-12},${y}' fill='none' stroke='#60a5fa' stroke-width='.4' opacity='.3'/>`;
+        }).join('')}
+        <!-- Reflection of moon in sea -->
+        <ellipse cx='480' cy='520' rx='30' ry='8' fill='#c8e4ff' opacity='.07'/>
+        <!-- Traveller silhouette far left -->
+        <rect x='60' y='455' width='4' height='16' rx='2' fill='white' opacity='.3'/>
+        <circle cx='62' cy='450' r='5' fill='white' opacity='.25'/>
+        <!-- Distant ridge -->
+        <polyline points='0,430 80,390 160,410 280,370 400,405 520,380 600,400 600,440 0,440' fill='#030e22' opacity='.9'/>
+        <text x='24' y='778' font-family='monospace' font-size='10' fill='rgba(96,165,250,.35)' letter-spacing='3'>PLATE 02</text>
+      </svg>`,
+
+      // 2: Ashfall — amber ruins, drifting ash
+      `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='800' viewBox='0 0 600 800'>
+        <defs>
+          <linearGradient id='sky2' x1='0' y1='0' x2='0' y2='1'><stop offset='0%' stop-color='#1a0e00'/><stop offset='50%' stop-color='#2a1400'/><stop offset='100%' stop-color='#3d1e00'/></linearGradient>
+          <radialGradient id='sun2' cx='70%' cy='15%' r='30%'><stop offset='0%' stop-color='#f0b429' stop-opacity='.4'/><stop offset='100%' stop-color='#f0b429' stop-opacity='0'/></radialGradient>
+        </defs>
+        <rect width='600' height='800' fill='url(#sky2)'/>
+        <rect width='600' height='800' fill='url(#sun2)'/>
+        <!-- Drifting ash particles -->
+        ${Array.from({length:80},(_,i)=>`<circle cx='${Math.sin(i*3.1)*280+300}' cy='${(i*101)%780}' r='${i%5===0?2:1}' fill='#c8a060' opacity='${.08+.12*(i%4)/4}'/>`).join('')}
+        <!-- Ruined building left — half dissolved -->
+        <rect x='20' y='280' width='110' height='400' fill='#1a0a00' opacity='.9'/>
+        <rect x='20' y='280' width='110' height='20' fill='#2a1200' opacity='.6'/>
+        <!-- Dissolved upper half — ash blur -->
+        <rect x='20' y='180' width='110' height='110' fill='#2a1200' opacity='.3'/>
+        <rect x='20' y='140' width='110' height='50' fill='#2a1200' opacity='.1'/>
+        <!-- Windows — some lit amber -->
+        ${Array.from({length:6},(_,i)=>`<rect x='35' y='${300+i*46}' width='20' height='28' rx='1' fill='#f0b429' opacity='${i%3===0?.18:.05}'/>`).join('')}
+        <!-- Central ruin arch -->
+        <path d='M200 680 L200 380 Q300 300 400 380 L400 680 Z' fill='#130800' opacity='.85'/>
+        <path d='M200 380 Q300 300 400 380' fill='none' stroke='#f0b429' stroke-width='1' opacity='.3'/>
+        <!-- Right building -->
+        <rect x='440' y='320' width='140' height='360' fill='#1a0a00' opacity='.85'/>
+        ${Array.from({length:5},(_,i)=>`<rect x='460' y='${340+i*50}' width='18' height='24' rx='1' fill='#f0b429' opacity='${i%2===0?.15:.04}'/>`).join('')}
+        <!-- Ground ash layer -->
+        <ellipse cx='300' cy='720' rx='400' ry='60' fill='#2a1400' opacity='.5'/>
+        <!-- Photographic plate in foreground -->
+        <rect x='245' y='600' width='110' height='80' rx='3' fill='#1a0a00' stroke='#f0b429' stroke-width='.5' stroke-opacity='.4'/>
+        <rect x='250' y='605' width='100' height='70' rx='2' fill='#0d0500' opacity='.8'/>
+        <!-- Plate text lines -->
+        ${Array.from({length:4},(_,i)=>`<line x1='258' y1='${618+i*12}' x2='342' y2='${618+i*12}' stroke='#c8a060' stroke-width='.5' opacity='.3'/>`).join('')}
+        <text x='24' y='778' font-family='monospace' font-size='10' fill='rgba(240,180,41,.3)' letter-spacing='3'>PLATE 03</text>
+      </svg>`,
+
+      // 3: Mirror Spires — impossible geometry
+      `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='800' viewBox='0 0 600 800'>
+        <defs>
+          <linearGradient id='sky3' x1='0' y1='0' x2='0' y2='1'><stop offset='0%' stop-color='#06002a'/><stop offset='100%' stop-color='#0a0318'/></linearGradient>
+          <linearGradient id='spire3' x1='0' y1='0' x2='1' y2='0'><stop offset='0%' stop-color='#c45bff' stop-opacity='.5'/><stop offset='50%' stop-color='white' stop-opacity='.15'/><stop offset='100%' stop-color='#60a5fa' stop-opacity='.4'/></linearGradient>
+        </defs>
+        <rect width='600' height='800' fill='url(#sky3)'/>
+        <!-- Star field -->
+        ${Array.from({length:100},(_,i)=>`<circle cx='${(i*137.5)%600}' cy='${(i*73)%600}' r='${i%9===0?1.5:.4}' fill='white' opacity='${.1+.4*(i%5)/5}'/>`).join('')}
+        <!-- Central spire — tall, reflective -->
+        <polygon points='300,50 320,700 280,700' fill='url(#spire3)' opacity='.7'/>
+        <polygon points='300,50 320,700 280,700' fill='none' stroke='white' stroke-width='.3' opacity='.2'/>
+        <!-- Reflections within spire (time slices) -->
+        ${Array.from({length:5},(_,i)=>`<line x1='${285+i*4}' y1='${150+i*40}' x2='${310-i*3}' y2='${200+i*50}' stroke='#c45bff' stroke-width='.4' opacity='${.3-i*.04}'/>`).join('')}
+        <!-- Left spire -->
+        <polygon points='140,120 160,720 120,720' fill='url(#spire3)' opacity='.5'/>
+        <!-- Right spire -->
+        <polygon points='460,100 478,720 442,720' fill='url(#spire3)' opacity='.5'/>
+        <!-- Smaller spires -->
+        <polygon points='70,200 82,720 58,720'  fill='#c45bff' opacity='.25'/>
+        <polygon points='530,220 540,720 520,720' fill='#60a5fa' opacity='.2'/>
+        <!-- Ground mirror plane -->
+        <rect x='0' y='720' width='600' height='80' fill='#06002a' opacity='.95'/>
+        <line x1='0' y1='720' x2='600' y2='720' stroke='white' stroke-width='.3' opacity='.15'/>
+        <!-- Reflections in ground -->
+        <polygon points='300,750 320,740 280,740' fill='#c45bff' opacity='.12'/>
+        <!-- Purple nebula glow behind spires -->
+        <ellipse cx='300' cy='400' rx='160' ry='300' fill='#c45bff' opacity='.04'/>
+        <ellipse cx='300' cy='400' rx='80' ry='200' fill='#c45bff' opacity='.04'/>
+        <text x='24' y='778' font-family='monospace' font-size='10' fill='rgba(196,91,255,.3)' letter-spacing='3'>PLATE 04</text>
+      </svg>`,
+
+      // 4: Pulse Cavern — wide bioluminescent panoramic
+      `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='340' viewBox='0 0 600 340'>
+        <defs>
+          <radialGradient id='cave4a' cx='30%' cy='60%' r='40%'><stop offset='0%' stop-color='#4ade80' stop-opacity='.3'/><stop offset='100%' stop-color='#4ade80' stop-opacity='0'/></radialGradient>
+          <radialGradient id='cave4b' cx='70%' cy='50%' r='35%'><stop offset='0%' stop-color='#60a5fa' stop-opacity='.25'/><stop offset='100%' stop-color='#60a5fa' stop-opacity='0'/></radialGradient>
+          <radialGradient id='cave4c' cx='50%' cy='40%' r='25%'><stop offset='0%' stop-color='#c45bff' stop-opacity='.2'/><stop offset='100%' stop-color='#c45bff' stop-opacity='0'/></radialGradient>
+        </defs>
+        <rect width='600' height='340' fill='#010408'/>
+        <rect width='600' height='340' fill='url(#cave4a)'/>
+        <rect width='600' height='340' fill='url(#cave4b)'/>
+        <rect width='600' height='340' fill='url(#cave4c)'/>
+        <!-- Cave ceiling stalactites -->
+        ${Array.from({length:18},(_,i)=>{const x=8+i*34,h=20+Math.sin(i*1.3)*30;return`<polygon points='${x},0 ${x+10},0 ${x+5},${h}' fill='#020a10' opacity='.95'/>`;}).join('')}
+        <!-- Bioluminescent clusters — prime pattern -->
+        ${[2,3,5,7,11,13,17,19,23,29,31].map((p,i)=>{const x=(p*19)%580+10,y=60+(i%4)*50;return`<circle cx='${x}' cy='${y}' r='${6+i%3*3}' fill='${["#4ade80","#60a5fa","#c45bff"][i%3]}' opacity='${.25+.15*(i%3)}'/>
+          <circle cx='${x}' cy='${y}' r='${12+i%3*5}' fill='${["#4ade80","#60a5fa","#c45bff"][i%3]}' opacity='.06'/>`;}).join('')}
+        <!-- Cave floor stalactites -->
+        ${Array.from({length:14},(_,i)=>{const x=15+i*43,h=15+Math.cos(i*1.7)*20;return`<polygon points='${x},340 ${x+8},340 ${x+4},${340-h}' fill='#020a10' opacity='.9'/>`;}).join('')}
+        <!-- Pulse rings -->
+        ${[0,1,2].map(i=>`<circle cx='180' cy='170' r='${30+i*25}' fill='none' stroke='#4ade80' stroke-width='.5' opacity='${.2-i*.06}'/>`).join('')}
+        <!-- Recording equipment silhouette -->
+        <rect x='270' y='200' width='30' height='20' rx='2' fill='#020e18' stroke='#4ade80' stroke-width='.5' stroke-opacity='.4'/>
+        <circle cx='285' cy='195' r='5' fill='#4ade80' opacity='.3'/>
+        <text x='24' y='322' font-family='monospace' font-size='9' fill='rgba(74,222,128,.3)' letter-spacing='3'>PLATE 05 — PANORAMIC</text>
+      </svg>`,
+
+      // 5: Veil Crossing — two seasons split
+      `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='800' viewBox='0 0 600 800'>
+        <defs>
+          <linearGradient id='autumn' x1='0' y1='0' x2='0' y2='1'><stop offset='0%' stop-color='#1a0a00'/><stop offset='100%' stop-color='#2a1200'/></linearGradient>
+          <linearGradient id='spring' x1='0' y1='0' x2='0' y2='1'><stop offset='0%' stop-color='#03080f'/><stop offset='100%' stop-color='#041a0a'/></linearGradient>
+        </defs>
+        <!-- Left half: late autumn -->
+        <rect x='0' y='0' width='300' height='800' fill='url(#autumn)'/>
+        <!-- Right half: early spring -->
+        <rect x='300' y='0' width='300' height='800' fill='url(#spring)'/>
+        <!-- Veil shimmer line -->
+        <line x1='300' y1='0' x2='300' y2='800' stroke='white' stroke-width='1.5' opacity='.12'/>
+        ${Array.from({length:20},(_,i)=>`<line x1='${296+Math.sin(i*0.8)*6}' y1='${i*40}' x2='${304+Math.sin(i*.8+1)*6}' y2='${i*40+40}' stroke='white' stroke-width='.4' opacity='${.05+.1*(i%3)/3}'/>`).join('')}
+        <!-- Autumn trees left -->
+        ${Array.from({length:4},(_,i)=>{const x=40+i*62;return`<rect x='${x-4}' y='400' width='8' height='240' fill='#3d1a00' opacity='.7'/>
+          <ellipse cx='${x}' cy='370' rx='35' ry='45' fill='#7a2e00' opacity='.4'/>
+          <ellipse cx='${x}' cy='370' rx='28' ry='36' fill='#f0b429' opacity='.12'/>`;}).join('')}
+        <!-- Autumn fallen leaves -->
+        ${Array.from({length:20},(_,i)=>`<ellipse cx='${20+i*13}' cy='${650+Math.sin(i)*30}' rx='6' ry='3' fill='#f0b429' opacity='${.08+.1*(i%3)/3}' transform='rotate(${i*17},${20+i*13},${650+Math.sin(i)*30})'/>`).join('')}
+        <!-- Spring trees right -->
+        ${Array.from({length:4},(_,i)=>{const x=320+i*68;return`<rect x='${x-3}' y='420' width='6' height='220' fill='#1a3d00' opacity='.6'/>
+          <ellipse cx='${x}' cy='390' rx='30' ry='40' fill='#1a3d00' opacity='.5'/>
+          <ellipse cx='${x}' cy='380' rx='20' ry='28' fill='#34d399' opacity='.1'/>`;}).join('')}
+        <!-- Spring blossoms -->
+        ${Array.from({length:15},(_,i)=>`<circle cx='${320+i*17}' cy='${360+Math.cos(i)*40}' r='3' fill='#34d399' opacity='${.12+.08*(i%4)/4}'/>`).join('')}
+        <!-- Traveller silhouette at veil -->
+        <rect x='293' y='550' width='6' height='24' rx='3' fill='white' opacity='.25'/>
+        <circle cx='296' cy='543' r='7' fill='white' opacity='.2'/>
+        <!-- Ground -->
+        <rect x='0' y='680' width='300' height='120' fill='#1a0a00' opacity='.6'/>
+        <rect x='300' y='680' width='300' height='120' fill='#041a0a' opacity='.6'/>
+        <text x='24' y='778' font-family='monospace' font-size='10' fill='rgba(96,165,250,.3)' letter-spacing='3'>PLATE 06</text>
+      </svg>`,
+
+      // 6: Starlit Overpass — transit bridge over suspended city
+      `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='800' viewBox='0 0 600 800'>
+        <defs>
+          <linearGradient id='sky6' x1='0' y1='0' x2='0' y2='1'><stop offset='0%' stop-color='#03001a'/><stop offset='100%' stop-color='#06001f'/></linearGradient>
+          <radialGradient id='city6' cx='50%' cy='80%' r='60%'><stop offset='0%' stop-color='#a78bfa' stop-opacity='.15'/><stop offset='100%' stop-color='#a78bfa' stop-opacity='0'/></radialGradient>
+        </defs>
+        <rect width='600' height='800' fill='url(#sky6)'/>
+        <rect width='600' height='800' fill='url(#city6)'/>
+        <!-- Stars -->
+        ${Array.from({length:120},(_,i)=>`<circle cx='${(i*97)%600}' cy='${(i*61)%500}' r='${i%11===0?1.8:i%5===0?1:.4}' fill='white' opacity='${.1+.5*(i%6)/6}'/>`).join('')}
+        <!-- Suspended city far below — windows -->
+        ${Array.from({length:60},(_,i)=>`<rect x='${(i*89)%560+20}' y='${580+(i%4)*30}' width='${4+i%3*3}' height='${6+i%4*4}' fill='${["#a78bfa","#60a5fa","#fde68a"][i%3]}' opacity='${.1+.15*(i%4)/4}'/>`).join('')}
+        <!-- City haze -->
+        <rect x='0' y='560' width='600' height='240' fill='#03001a' opacity='.5'/>
+        <ellipse cx='300' cy='560' rx='400' ry='30' fill='#a78bfa' opacity='.04'/>
+        <!-- Overpass bridge structure -->
+        <rect x='0' y='380' width='600' height='12' fill='#0d0025' stroke='#a78bfa' stroke-width='.4' stroke-opacity='.3'/>
+        <!-- Bridge cables -->
+        ${Array.from({length:10},(_,i)=>`<line x1='${30+i*60}' y1='300' x2='${i%2===0?0:600}' y2='392' stroke='#a78bfa' stroke-width='.4' opacity='.15'/>`).join('')}
+        <!-- Bridge towers -->
+        <rect x='80' y='220' width='14' height='172' fill='#0d0025' stroke='#a78bfa' stroke-width='.5' stroke-opacity='.3'/>
+        <rect x='506' y='220' width='14' height='172' fill='#0d0025' stroke='#a78bfa' stroke-width='.5' stroke-opacity='.3'/>
+        <!-- Train/tram on bridge -->
+        <rect x='200' y='368' width='120' height='14' rx='3' fill='#0d0025' stroke='#a78bfa' stroke-width='.6' stroke-opacity='.4'/>
+        <rect x='204' y='370' width='18' height='8' rx='1' fill='#a78bfa' opacity='.2'/>
+        <rect x='226' y='370' width='18' height='8' rx='1' fill='#a78bfa' opacity='.15'/>
+        <rect x='248' y='370' width='18' height='8' rx='1' fill='#60a5fa' opacity='.2'/>
+        <!-- Ghost dimension shimmer mid-transit -->
+        <rect x='310' y='340' width='80' height='60' fill='#fff' opacity='.015'/>
+        <ellipse cx='350' cy='370' rx='40' ry='20' fill='#fde68a' opacity='.04'/>
+        <text x='24' y='778' font-family='monospace' font-size='10' fill='rgba(167,139,250,.3)' letter-spacing='3'>PLATE 07</text>
+      </svg>`,
+
+      // 7: Silent Bazaar — void market, stalls of memory
+      `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='800' viewBox='0 0 600 800'>
+        <defs>
+          <radialGradient id='void7' cx='50%' cy='40%' r='55%'><stop offset='0%' stop-color='#0a0506'/><stop offset='100%' stop-color='#020202'/></radialGradient>
+          <radialGradient id='glow7' cx='50%' cy='50%' r='40%'><stop offset='0%' stop-color='#fb923c' stop-opacity='.08'/><stop offset='100%' stop-color='#fb923c' stop-opacity='0'/></radialGradient>
+        </defs>
+        <rect width='600' height='800' fill='url(#void7)'/>
+        <rect width='600' height='800' fill='url(#glow7)'/>
+        <!-- Void fog -->
+        ${Array.from({length:6},(_,i)=>`<ellipse cx='${80+i*90}' cy='${300+Math.sin(i)*80}' rx='${80+i*10}' ry='30' fill='#fb923c' opacity='.02'/>`).join('')}
+        <!-- Market stalls — made of memory, fading edges -->
+        <!-- Left stall -->
+        <rect x='30' y='350' width='120' height='200' rx='2' fill='#0d0606' opacity='.9'/>
+        <rect x='20' y='350' width='140' height='8' fill='#fb923c' opacity='.08'/>
+        <!-- Items on left stall -->
+        <circle cx='70' cy='420' r='12' fill='none' stroke='#fb923c' stroke-width='.6' opacity='.3'/>
+        <rect x='95' y='408' width='30' height='40' rx='1' fill='#1a0a02' stroke='#fb923c' stroke-width='.4' stroke-opacity='.25'/>
+        <!-- Central stall -->
+        <rect x='220' y='320' width='160' height='240' rx='2' fill='#0d0606' opacity='.85'/>
+        <rect x='210' y='318' width='180' height='10' fill='#fb923c' opacity='.1'/>
+        <!-- Sound vessel — what DOC911 bought -->
+        <ellipse cx='300' cy='430' rx='30' ry='40' fill='none' stroke='#fb923c' stroke-width='.8' stroke-opacity='.4' stroke-dasharray='3,4'/>
+        <ellipse cx='300' cy='430' rx='18' ry='25' fill='#fb923c' opacity='.04'/>
+        <!-- Frequency lines emanating from vessel -->
+        ${Array.from({length:5},(_,i)=>`<ellipse cx='300' cy='430' rx='${35+i*12}' ry='${48+i*16}' fill='none' stroke='#fb923c' stroke-width='.3' opacity='${.15-i*.025}'/>`).join('')}
+        <!-- Right stall — fading -->
+        <rect x='450' y='360' width='120' height='190' rx='2' fill='#0d0606' opacity='.6'/>
+        <rect x='440' y='358' width='140' height='8' fill='#fb923c' opacity='.06'/>
+        <!-- Ground void -->
+        <rect x='0' y='640' width='600' height='160' fill='#020202' opacity='.8'/>
+        <ellipse cx='300' cy='645' rx='500' ry='20' fill='#fb923c' opacity='.02'/>
+        <!-- Vendor silhouettes -->
+        <rect x='155' y='480' width='5' height='70' rx='2' fill='#fb923c' opacity='.12'/>
+        <circle cx='157' cy='473' r='8' fill='#fb923c' opacity='.1'/>
+        <rect x='420' y='490' width='5' height='60' rx='2' fill='#fb923c' opacity='.1'/>
+        <circle cx='422' cy='484' r='7' fill='#fb923c' opacity='.08'/>
+        <text x='24' y='778' font-family='monospace' font-size='10' fill='rgba(251,146,60,.25)' letter-spacing='3'>PLATE 08</text>
+      </svg>`,
+    ];
+    return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(scenes[n]||scenes[0]);
+  }
+
+  const srcs = ITEMS.map((_,i) => mkSVG(i));
+  const root = document.getElementById('gallery');
+
+  /* ── Filter logic ────────────────────────────────────────────── */
+  let activeFilter = 'all';
+  document.querySelectorAll('.gf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeFilter = btn.dataset.filter;
+      document.querySelectorAll('.gf-btn').forEach(b => b.classList.toggle('active', b === btn));
+      render();
+      AUD.ui('click', {pitch: 1100});
+    });
+  });
+
+  /* ── Render grid ─────────────────────────────────────────────── */
+  function render(){
+    root.innerHTML = '';
+    ITEMS.forEach((it, i) => {
+      if(activeFilter !== 'all' && !it.tags.includes(activeFilter)) return;
+      const c = document.createElement('div');
+      c.className = 'photo-card'; c.tabIndex = 0;
+      c.setAttribute('role','listitem');
+      // Badge
+      const badge = document.createElement('div');
+      badge.className = 'photo-badge';
+      badge.textContent = it.exif.note || `Plate ${i+1}`;
+      // Image
+      const img = document.createElement('img');
+      img.src = srcs[i];
+      img.alt = `${it.title} — ${it.location}`;
+      img.loading = 'lazy';
+      // Caption
+      const cap = document.createElement('div');
+      cap.className = 'photo-caption mono';
+      cap.innerHTML = `<strong>${it.title}</strong><small>${it.location}</small>`;
+      c.appendChild(badge); c.appendChild(img); c.appendChild(cap);
+      root.appendChild(c);
+      c.addEventListener('click', () => openLB(i));
+      c.addEventListener('keydown', e => {
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openLB(i); }
+      });
+    });
+  }
+  render();
+
+  /* ── Upload handler ──────────────────────────────────────────── */
+  document.getElementById('uploadImagesBtn').addEventListener('click', () =>
+    document.getElementById('imageUploader').click());
+  document.getElementById('imageUploader').addEventListener('change', e => {
+    Array.from(e.target.files).slice(0, ITEMS.length).forEach((f, i) => {
+      const r = new FileReader();
+      r.onload = ev => { srcs[i] = ev.target.result; render(); logEv(`Replaced plate ${i+1}`); };
+      r.readAsDataURL(f);
+    });
+    e.target.value = '';
+  });
+
+  /* ── Lightbox ────────────────────────────────────────────────── */
+  const lbRoot = document.getElementById('lightboxRoot');
+  let lbOpen = false, lbIdx = 0, lbOv = null;
+
+  function openLB(i){
+    if(lbOpen) return;
+    if(actx.state === 'suspended') actx.resume();
+    AUD.ui('click', {pitch: 920});
+    lbIdx = i;
+    const it = ITEMS[i];
+    const ov = document.createElement('div'); ov.className = 'lb-overlay';
+    const cnt = document.createElement('div'); cnt.className = 'lb-content';
+    cnt.innerHTML = `
+      <div class="lb-image-panel">
+        <img src="${srcs[i]}" alt="${it.title}" style="width:100%;height:100%;object-fit:cover;display:block;"/>
+        <button class="lb-nav-btn lb-nav-prev">◀</button>
+        <button class="lb-nav-btn lb-nav-next">▶</button>
+        <button class="lb-close-btn">✕</button>
+      </div>
+      <div class="lb-info-panel">
+        <div>
+          <div class="section-label" style="margin-bottom:8px;">Memory Plate ${String(i+1).padStart(2,'0')}</div>
+          <div style="font-family:'Unbounded',sans-serif;font-weight:900;font-size:1.15rem;line-height:1.2;margin-bottom:6px;">${it.title}</div>
+          <div class="mono" style="font-size:.66rem;color:var(--muted);margin-bottom:14px;">${it.location}</div>
+          <p style="font-size:.84rem;line-height:1.75;color:rgba(226,238,248,.65);">${it.caption}</p>
+        </div>
+        <div>
+          <div class="mono" style="font-size:.6rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:10px;">Exposure Data</div>
+          <div class="lb-exif">
+            <div class="lb-exif-cell"><div class="lb-exif-label">Dimension</div><div class="lb-exif-val">${it.exif.dim}</div></div>
+            <div class="lb-exif-cell"><div class="lb-exif-label">Local Time</div><div class="lb-exif-val">${it.exif.time}</div></div>
+            <div class="lb-exif-cell"><div class="lb-exif-label">Exposure</div><div class="lb-exif-val">${it.exif.exp}</div></div>
+            <div class="lb-exif-cell"><div class="lb-exif-label">Tags</div><div class="lb-exif-val" style="font-size:.62rem;">${it.tags.join(' / ')}</div></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:auto;">
+          <button class="btn btn-primary lb-buy-btn">Buy Print — $49</button>
+          <a class="btn" href="${srcs[i]}" download="${it.title.replace(/\s+/g,'_')}.svg">Download</a>
+        </div>
+      </div>`;
+    ov.appendChild(cnt); lbRoot.appendChild(ov);
+    lbOpen = true; lbOv = ov;
+    gsap.fromTo(ov, {opacity:0}, {opacity:1, duration:.18});
+    cnt.querySelector('.lb-close-btn').addEventListener('click', closeLB);
+    cnt.querySelector('.lb-nav-prev').addEventListener('click', () => navLB(-1));
+    cnt.querySelector('.lb-nav-next').addEventListener('click', () => navLB(1));
+    cnt.querySelector('.lb-buy-btn').addEventListener('click', () =>
+      openCheckout({title:it.title, amount:49, image:srcs[i]}));
+    ov.addEventListener('click', e => { if(e.target === ov) closeLB(); });
+    // Keyboard navigation
+    ov.addEventListener('keydown', e => {
+      if(e.key==='Escape') closeLB();
+      if(e.key==='ArrowRight') navLB(1);
+      if(e.key==='ArrowLeft')  navLB(-1);
+    });
+    ov.focus();
+  }
+
+  function closeLB(){
+    if(!lbOpen) return;
+    gsap.to(lbOv, {opacity:0, duration:.14, onComplete:()=>{ lbOv.remove(); lbOpen=false; lbOv=null; }});
+    AUD.ui('click', {pitch:600});
+  }
+  function navLB(d){
+    const nx = (lbIdx + d + ITEMS.length) % ITEMS.length;
+    if(lbOv) gsap.to(lbOv, {opacity:0, duration:.1,
+      onComplete:()=>{ lbOv.remove(); lbOpen=false; lbOv=null; openLB(nx); }});
+    else openLB(nx);
+    AUD.ui('click', {pitch: 800 + d*200});
+  }
 })();
 
 /* ============================================================
@@ -1741,7 +2889,10 @@ function rmsOf(an){const b=new Uint8Array(an.fftSize);try{an.getByteTimeDomainDa
   const ctx=canvas.getContext('2d');
   const tooltip=document.getElementById('map-tooltip');
 
-  function resize(){canvas.width=canvas.parentElement.clientWidth||window.innerWidth;canvas.height=520;}
+  function resize(){
+    canvas.width=canvas.parentElement.clientWidth||window.innerWidth;
+    canvas.height=window.innerWidth<=480?300:window.innerWidth<=768?340:520;
+  }
   resize();window.addEventListener('resize',resize);
 
   const NODES=[
@@ -1769,6 +2920,7 @@ function rmsOf(an){const b=new Uint8Array(an.fftSize);try{an.getByteTimeDomainDa
         if(actx.state==='suspended')actx.resume();
         AUD.ui('node',{pitch:n.freq});
         logEv(`Visited: ${n.name}`);
+        if(window._highlightLogEntry) window._highlightLogEntry(n.id);
         tooltip.style.display='block';
         tooltip.style.left=(wx+14)+'px';tooltip.style.top=(wy-8)+'px';
         tooltip.innerHTML=`<div style="color:${n.col};font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;">${n.loc}</div><div style="font-weight:700;margin-top:2px;">${n.name}</div><div style="color:var(--muted);font-size:.6rem;margin-top:4px;">Freq: ${n.freq}Hz</div>`;
@@ -2095,7 +3247,7 @@ function openCheckout({title='Print',amount=29,image=null}={}){
   if (gridWrap) {
     for (let r = 0; r < ROWS; r++) {
       const row = document.createElement('div');
-      row.style.cssText = 'display:grid;grid-template-columns:112px repeat(8,1fr);gap:8px;align-items:center;';
+      row.style.cssText = 'display:grid;grid-template-columns:112px repeat(8,1fr);gap:8px;align-items:center;'; row.classList.add('seq-row-item');
 
       // row label + pitch selector
       const label = document.createElement('div');
@@ -2251,6 +3403,50 @@ function openCheckout({title='Print',amount=29,image=null}={}){
 
   /* ---- Add to boot log ---- */
   logEv('Step sequencer online — 4 rows × 8 steps');
+})();
+
+
+/* ============================================================
+   LOGBOOK — scroll reveal + map node sync
+   Each .log-entry gets an IntersectionObserver that adds
+   .revealed when it enters the viewport, triggering the
+   CSS transition on .log-text. The data-node attribute
+   matches NODES[] ids in the star map, so visiting a node
+   highlights its logbook entry.
+============================================================ */
+(function initLogbook(){
+  const entries = document.querySelectorAll('.log-entry');
+
+  // Scroll reveal
+  const io = new IntersectionObserver(obs => {
+    obs.forEach(e => {
+      if(e.isIntersecting){
+        e.target.classList.add('revealed');
+        io.unobserve(e.target);
+      }
+    });
+  }, {threshold: 0.15});
+  entries.forEach(el => io.observe(el));
+
+  // "Read Logbook" button smooth-scrolls to logbook section
+  const logBtn = document.getElementById('logBtn');
+  if(logBtn){
+    logBtn.addEventListener('click', () => {
+      const lb = document.getElementById('logbook-section');
+      if(lb) lb.scrollIntoView({behavior:'smooth', block:'start'});
+      AUD.ui('click', {pitch: 660});
+    });
+  }
+
+  // Expose a function so the star map can highlight matching entry
+  window._highlightLogEntry = (nodeId) => {
+    entries.forEach(el => {
+      if(parseInt(el.dataset.node) === nodeId){
+        el.classList.add('revealed');
+        setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'center'}), 300);
+      }
+    });
+  };
 })();
 
 </script>
